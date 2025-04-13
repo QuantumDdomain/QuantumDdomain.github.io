@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Root Finder</title>
+    
+    <!-- Add Pyodide script (make sure this is placed correctly in the <head>) -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/pyodide.js"></script>
 </head>
 <body>
@@ -45,10 +47,18 @@
         let pyodideReady = false;
 
         async function loadPyodideAndRun() {
+            // Check if pyodide is already loaded
             if (!pyodideReady) {
-                window.pyodide = await loadPyodide();
-                pyodideReady = true;
-                console.log("Pyodide is loaded");
+                try {
+                    // This loads the Pyodide environment
+                    window.pyodide = await loadPyodide();
+                    pyodideReady = true;
+                    console.log("Pyodide is loaded");
+                } catch (error) {
+                    console.error("Error loading Pyodide:", error);
+                    document.getElementById("output").textContent = "Error loading Pyodide.";
+                    return;
+                }
             }
 
             const algorithm = document.getElementById("algorithmSelect").value;
@@ -87,7 +97,6 @@
                 result = bisection_method("${expr}", ${a}, ${b})
               else:
                 result = newton_raphson_method("${expr}", ${x0})
-              result
             `;
 
             try {
