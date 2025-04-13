@@ -6,25 +6,35 @@
   <style>
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
       margin: 0;
       padding: 20px;
+      background-image: url('https://raw.githubusercontent.com/QuantumDdomain/QuantumDdomain.github.io/main/image.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #333;
     }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
+
+  .container {
+  max-width: 700px;
+  margin: auto;
+  background: rgba(255, 255, 255, 0.6); /* More transparent */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px); /* Optional: adds a blur to background behind the container */
+  -webkit-backdrop-filter: blur(6px); /* For Safari */
+  }
+
+
     h1 {
       text-align: center;
       color: #2c3e50;
       font-size: 36px;
       margin-bottom: 20px;
     }
+
     .section-link {
       display: block;
       margin: 15px 0;
@@ -38,54 +48,44 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
     }
+
     .section-link:hover {
       background-color: #dfe6e9;
       color: #2980b9;
       transform: scale(1.05);
     }
+
     .section-link:active {
       background-color: #bdc3c7;
       transform: scale(1);
     }
+
     .section-link:focus {
       outline: none;
       border: 2px solid #3498db;
     }
+
     .footer {
       text-align: center;
       margin-top: 30px;
       font-size: 14px;
       color: #7f8c8d;
     }
-    .image-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-    .image-container img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Welcome to Numerical Methods</h1>
-    <div class="image-container">
-      <img src="https://via.placeholder.com/600x200" alt="Numerical Methods" />
 
     <a class="section-link" href="root_finding/">Root Finding Methods</a>
     <a class="section-link" href="linear_solver/">Linear Equation Solver</a>
     <a class="section-link" href="integration/">Integration Methods</a>
     <a class="section-link" href="derivatives/">Derivatives</a>
     <!-- Add more links here for other sections as needed -->
-
   </div>
 
   <div class="footer">
     <p>&copy; 2025 Numerical Methods | Designed by Braja Gopal Das</p>
   </div>
-
 </body>
 </html>
