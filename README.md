@@ -20,4 +20,3 @@ Clone the repository and install the required packages:
 ```bash
 git clone https://github.com/QuantumDdomain/Numerical-App.git
 cd numerical-methods-app
-pip install -r requirements.txt
