@@ -22,6 +22,10 @@ def bisection_method(expr, a, b, tol=1e-6):
         else:
             a = c
         iterations += 1
+        
+        if iterations > 1000:  # Adding iteration limit
+            raise ValueError("The method did not converge in 1000 iterations.")
+    
     return (a + b) / 2, iterations
 
 # Streamlit UI
@@ -39,3 +43,4 @@ if st.button("Find Root"):
         st.success(f"✅ Root found: {root:.6f} in {iterations} iterations")
     except Exception as e:
         st.error(f"❌ Error: {e}")
+
