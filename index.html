@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Root Finder</title>
     
-    <!-- Add Pyodide script (make sure this is placed correctly in the <head>) -->
+    <!-- Pyodide script should be loaded here -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/pyodide.js"></script>
 </head>
 <body>
@@ -46,14 +46,14 @@
     <script type="text/javascript">
         let pyodideReady = false;
 
+        // Ensure Pyodide is loaded before running code
         async function loadPyodideAndRun() {
-            // Check if pyodide is already loaded
             if (!pyodideReady) {
                 try {
-                    // This loads the Pyodide environment
-                    window.pyodide = await loadPyodide();
+                    // Load Pyodide
+                    await loadPyodide();
                     pyodideReady = true;
-                    console.log("Pyodide is loaded");
+                    console.log("Pyodide is loaded successfully!");
                 } catch (error) {
                     console.error("Error loading Pyodide:", error);
                     document.getElementById("output").textContent = "Error loading Pyodide.";
