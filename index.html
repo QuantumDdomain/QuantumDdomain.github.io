@@ -7,26 +7,29 @@
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background-image: url('https://raw.githubusercontent.com/QuantumDdomain/QuantumDdomain.github.io/main/image.jpg');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
       color: #333;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
-  .container {
-  max-width: 700px;
-  margin: auto;
-  background: rgba(255, 255, 255, 0.6); /* More transparent */
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(6px); /* Optional: adds a blur to background behind the container */
-  -webkit-backdrop-filter: blur(6px); /* For Safari */
-  }
-
+    .container {
+      max-width: 700px;
+      background: rgba(255, 255, 255, 0.6); /* More transparent */
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
 
     h1 {
       text-align: center;
@@ -82,10 +85,10 @@
     <a class="section-link" href="integration/">Integration Methods</a>
     <a class="section-link" href="derivatives/">Derivatives</a>
     <!-- Add more links here for other sections as needed -->
-  </div>
 
-  <div class="footer">
-    <p>&copy; 2025 Numerical Methods | Designed by Braja Gopal Das</p>
+    <div class="footer">
+      <p>&copy; 2025 Numerical Methods | Designed by Braja Gopal Das</p>
+    </div>
   </div>
 </body>
 </html>
