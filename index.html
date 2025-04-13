@@ -2,18 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Bisection Method - Python in Browser</title>
+  <title>Choose Algorithm - Python in Browser</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
-    body { font-family: Arial; padding: 2rem; max-width: 700px; margin: auto; }
-    input, button { margin: 5px 0; padding: 10px; width: 100%; font-size: 1rem; }
-    button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #45a049; }
-    pre { background: #f4f4f4; padding: 1rem; border-radius: 5px; }
+    body { font-family: Arial; padding: 2rem; }
+    input, button, select { margin: 10px 0; padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>🔍 Bisection Method Solver (Python)</h1>
+  <h1>Root Finder - Choose Algorithm</h1>
+
+  <label>Select Algorithm:</label>
+  <select id="algorithmSelect">
+    <option value="bisection">Bisection Method</option>
+    <option value="newton_raphson">Newton-Raphson Method</option>
+  </select>
 
   <label>Function f(x):</label>
   <input id="func_expr" value="x**3 + 4*x**2 - 10">
@@ -24,9 +27,9 @@
   <label>Upper bound (b):</label>
   <input id="upper" type="number" value="2.0">
 
-  <button onclick="runPython()">Find Root</button>
+  <button onclick="runPython()">Run Algorithm</button>
 
-  <h2>🧪 Output:</h2>
+  <h2>Output:</h2>
   <pre id="output">Waiting for input...</pre>
 
   <script>
@@ -37,46 +40,31 @@
         pyodideReady = true;
       }
 
+      const algorithm = document.getElementById("algorithmSelect").value;
       const expr = document.getElementById("func_expr").value;
       const a = parseFloat(document.getElementById("lower").value);
       const b = parseFloat(document.getElementById("upper").value);
 
-      const pythonCode = `
-import math
+      // Load the appropriate Python file based on the selected algorithm
+      let pythonCode = '';
+      if (algorithm === 'bisection') {
+        pythonCode = await fetch('web_bisection_method.py').then(res => res.text());
+      } else if (algorithm === 'newton_raphson') {
+        pythonCode = await fetch('web_newton_raphson.py').then(res => res.text());
+      }
 
-def evaluate_function(expr, x):
-    allowed_names = {
-        k: v for k, v in math.__dict__.items() if not k.startswith("__")
-    }
-    allowed_names["x"] = x
-    return eval(expr, {"__builtins__": {}}, allowed_names)
-
-def bisection_method(expr, a, b, tol=1e-6):
-    iterations = 0
-    while abs((b - a) / b) > tol:
-        c = (a + b) / 2
-        f_c = evaluate_function(expr, c)
-        if f_c == 0:
-            break
-        elif evaluate_function(expr, a) * f_c < 0:
-            b = c
-        else:
-            a = c
-        iterations += 1
-        if iterations > 1000:
-            raise ValueError("Method did not converge in 1000 iterations.")
-    return (a + b) / 2, iterations
-
-try:
-    root, iters = bisection_method("${expr}", ${a}, ${b})
-    result = f"Root found: {root:.6f} in {iters} iterations"
-except Exception as e:
-    result = f"Error: {e}"
+      const fullCode = `
+${pythonCode}
+result = bisection_method("${expr}", ${a}, ${b})
 result
-`;
+      `;
 
-      const result = await pyodide.runPythonAsync(pythonCode);
-      document.getElementById("output").textContent = result;
+      try {
+        const result = await pyodide.runPythonAsync(fullCode);
+        document.getElementById("output").textContent = "Root: " + result;
+      } catch (error) {
+        document.getElementById("output").textContent = "Error: " + error;
+      }
     }
   </script>
 </body>
