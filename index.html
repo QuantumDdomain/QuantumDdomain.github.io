@@ -1,125 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Root Finder</title>
-    
-    <!-- Pyodide script should be loaded here -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/pyodide.js"></script>
+  <meta charset="UTF-8" />
+  <title>Root Finder</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 </head>
 <body>
-    <h1>Root Finder Using Numerical Methods</h1>
+  <h1>Root Finder Using Numerical Methods</h1>
 
-    <div>
-        <label for="algorithmSelect">Select Algorithm:</label>
-        <select id="algorithmSelect">
-            <option value="bisection">Bisection Method</option>
-            <option value="newton_raphson">Newton-Raphson Method</option>
-        </select>
-    </div>
+  <label for="algorithmSelect">Select Algorithm:</label>
+  <select id="algorithmSelect">
+    <option value="bisection">Bisection Method</option>
+    <option value="newton_raphson">Newton-Raphson Method</option>
+  </select><br><br>
 
-    <div>
-        <label for="func_expr">Enter Function f(x):</label>
-        <input type="text" id="func_expr" value="x**3 + 4*x**2 - 10">
-    </div>
+  <label for="func_expr">Enter Function f(x):</label>
+  <input type="text" id="func_expr" value="x**3 + 4*x**2 - 10"><br><br>
 
-    <div id="bisectionInputs">
-        <label for="lower">Lower Bound (a):</label>
-        <input type="number" id="lower" value="1">
-        <label for="upper">Upper Bound (b):</label>
-        <input type="number" id="upper" value="2">
-    </div>
+  <div id="bisectionInputs">
+    <label for="lower">Lower Bound (a):</label>
+    <input type="number" id="lower" value="1"><br>
+    <label for="upper">Upper Bound (b):</label>
+    <input type="number" id="upper" value="2"><br><br>
+  </div>
 
-    <div id="newtonRaphsonInputs" style="display:none;">
-        <label for="x0">Initial Guess (x0):</label>
-        <input type="number" id="x0" value="1.5">
-    </div>
+  <div id="newtonRaphsonInputs" style="display:none;">
+    <label for="x0">Initial Guess (x0):</label>
+    <input type="number" id="x0" value="1.5"><br><br>
+  </div>
 
-    <div>
-        <button onclick="loadPyodideAndRun()">Find Root</button>
-    </div>
+  <button onclick="loadPyodideAndRun()">Find Root</button>
 
-    <h3>Result:</h3>
-    <div id="output"></div>
+  <h3>Result:</h3>
+  <div id="output">Loading Pyodide...</div>
 
-    <script type="text/javascript">
-        let pyodideReady = false;
+  <script>
+    let pyodideReadyPromise = loadPyodide();
 
-        // Ensure Pyodide is loaded before running code
-        async function loadPyodideAndRun() {
-            if (!pyodideReady) {
-                try {
-                    // Load Pyodide
-                    await loadPyodide();
-                    pyodideReady = true;
-                    console.log("Pyodide is loaded successfully!");
-                } catch (error) {
-                    console.error("Error loading Pyodide:", error);
-                    document.getElementById("output").textContent = "Error loading Pyodide.";
-                    return;
-                }
-            }
+    async function loadPyodideAndRun() {
+      const pyodide = await pyodideReadyPromise;
 
-            const algorithm = document.getElementById("algorithmSelect").value;
-            const expr = document.getElementById("func_expr").value;
-            console.log("Expression:", expr);  // Log expression to check
+      const algorithm = document.getElementById("algorithmSelect").value;
+      const expr = document.getElementById("func_expr").value;
 
-            let pythonCode = '';
-            let a, b, x0;
+      let code = "";
+      let inputCode = "";
 
-            if (algorithm === 'bisection') {
-                a = parseFloat(document.getElementById("lower").value);
-                b = parseFloat(document.getElementById("upper").value);
-                if (isNaN(a) || isNaN(b)) {
-                    alert("Please enter valid numeric values for the lower and upper bounds.");
-                    return;
-                }
-                console.log("Bisection - a:", a, "b:", b);  // Log to ensure they are numbers
-                pythonCode = await fetch('web_bisection_method.py').then(res => res.text());
-            } else if (algorithm === 'newton_raphson') {
-                x0 = parseFloat(document.getElementById("x0").value);
-                if (isNaN(x0)) {
-                    alert("Please enter a valid numeric value for the initial guess (x0).");
-                    return;
-                }
-                console.log("Newton-Raphson - x0:", x0);  // Log to ensure x0 is defined
-                pythonCode = await fetch('web_newton_raphson.py').then(res => res.text());
-            }
+      if (algorithm === "bisection") {
+        const a = parseFloat(document.getElementById("lower").value);
+        const b = parseFloat(document.getElementById("upper").value);
+        code = await (await fetch("web_bisection_method.py")).text();
+        inputCode = `result = bisection_method("${expr}", ${a}, ${b})`;
+      } else if (algorithm === "newton_raphson") {
+        const x0 = parseFloat(document.getElementById("x0").value);
+        code = await (await fetch("web_newton_raphson.py")).text();
+        inputCode = `result = newton_raphson_method("${expr}", ${x0})`;
+      }
 
-            // Log the Python code that will be executed
-            console.log("Python Code to execute:", pythonCode);
+      try {
+        await pyodide.runPythonAsync(code + "\n" + inputCode);
+        const result = pyodide.globals.get("result");
+        document.getElementById("output").textContent = `Root: ${result}`;
+      } catch (err) {
+        document.getElementById("output").textContent = "Error: " + err;
+        console.error(err);
+      }
+    }
 
-            // Ensure both methods are available in the code
-            const fullCode = `
-              ${pythonCode}
-              if ('a' in locals() and 'b' in locals()):
-                result = bisection_method("${expr}", ${a}, ${b})
-              else:
-                result = newton_raphson_method("${expr}", ${x0})
-            `;
+    // Dynamic input display
+    document.getElementById("algorithmSelect").addEventListener("change", function () {
+      const algo = this.value;
+      document.getElementById("bisectionInputs").style.display = (algo === "bisection") ? "block" : "none";
+      document.getElementById("newtonRaphsonInputs").style.display = (algo === "newton_raphson") ? "block" : "none";
+    });
 
-            try {
-                const result = await pyodide.runPythonAsync(fullCode);
-                console.log("Python result:", result);  // Log the result from Python
-                document.getElementById("output").textContent = "Root: " + result;
-            } catch (error) {
-                console.error("Error in Python execution:", error);
-                document.getElementById("output").textContent = "Error: " + error;
-            }
-        }
-
-        // Change the inputs based on the selected algorithm
-        document.getElementById("algorithmSelect").addEventListener("change", function () {
-            const algorithm = this.value;
-            if (algorithm === 'bisection') {
-                document.getElementById("bisectionInputs").style.display = 'block';
-                document.getElementById("newtonRaphsonInputs").style.display = 'none';
-            } else if (algorithm === 'newton_raphson') {
-                document.getElementById("bisectionInputs").style.display = 'none';
-                document.getElementById("newtonRaphsonInputs").style.display = 'block';
-            }
-        });
-    </script>
+    // Pyodide loading status
+    pyodideReadyPromise
+      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to compute!")
+      .catch(err => document.getElementById("output").textContent = "Failed to load Pyodide.");
+  </script>
 </body>
 </html>
