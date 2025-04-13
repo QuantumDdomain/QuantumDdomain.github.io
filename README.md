@@ -1,13 +1,12 @@
-# 📊 Numerical Methods Web App (Streamlit)
+# 📊 Numerical Methods Web App
 
-This is a web-based tool built using [Streamlit](https://streamlit.io/) to demonstrate and interact with various **numerical methods** used in computational physics and applied mathematics.
+This is a web-based tool built to demonstrate and interact with various **numerical methods** used in computational physics and applied mathematics.
 
 ---
 
 ## 🛠️ Technologies Used
 
 - Python 🐍
-- [Streamlit](https://streamlit.io/)
 - NumPy
 - Matplotlib
 
