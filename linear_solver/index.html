@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Linear Equation Solver</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Linear Equation Solver</h1>
+
+    <label for="n">Number of equations (n):</label>
+    <input type="number" id="n" value="3" min="1" />
+
+    <label for="matrixA">Enter Matrix A (one row per line, space-separated):</label>
+    <textarea id="matrixA" rows="4">2 1 1\n3 2 3\n1 4 9</textarea>
+
+    <label for="vectorB">Enter Vector B (space-separated):</label>
+    <input type="text" id="vectorB" value="10 18 16" />
+
+    <button onclick="solveSystem()">Solve</button>
+
+    <div id="output">Loading Pyodide...</div>
+  </div>
+
+  <script>
+    let pyodideReady = loadPyodide();
+
+    async function solveSystem() {
+      const pyodide = await pyodideReady;
+
+      const n = parseInt(document.getElementById("n").value);
+      const matrixA = document.getElementById("matrixA").value.replace(/\\n/g, '\n');
+      const vectorB = document.getElementById("vectorB").value;
+
+      try {
+        const script = await (await fetch("web_linear_solver.py")).text();
+        pyodide.runPython(script);
+        pyodide.runPython(`
+A = parse_input_matrix("""${matrixA}""", ${n})
+B = parse_input_vector("""${vectorB}""", ${n})
+result = gauss_jordan_elimination(A, B)
+        `);
+        const result = pyodide.globals.get("result").toJs();
+        document.getElementById("output").innerText =
+          "✅ Solution:\n" +
+          result.map((val, i) => `x${i + 1} = ${val.toFixed(6)}`).join("\n");
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ Error: " + err;
+      }
+    }
+
+    pyodideReady
+      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to solve!")
+      .catch(err => document.getElementById("output").textContent = "Failed to load Pyodide.");
+  </script>
+</body>
+</html>
