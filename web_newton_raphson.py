@@ -24,7 +24,7 @@ def bisection_method(expr, a, b, tol=1e-6):
     return (a + b) / 2, iterations
 
 # Main program loop
-if __name__ == "__main__":
+'''if __name__ == "__main__":
     func_expr = input("Enter the function in terms of x (e.g. x**3 - 4*x + 1): ")
     a = float(input("Enter lower bound (a): "))
     b = float(input("Enter upper bound (b): "))
@@ -34,4 +34,4 @@ if __name__ == "__main__":
         root, iterations = bisection_method(func_expr, a, b)
         print(f"✅ Root found: {root:.6f} in {iterations} iterations")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error: {e}")'''
