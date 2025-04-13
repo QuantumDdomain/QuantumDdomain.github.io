@@ -1,13 +1,11 @@
 import streamlit as st
-from Str_newton_raphson import newton_raphson_method
 from Str_bisection_method import bisection_method
+from Str_newton_raphson import newton_raphson_method
 
-st.title("🧮 Numerical Methods App")
+st.sidebar.title("Numerical Methods")
+option = st.sidebar.selectbox("Select a method", ["Bisection Method", "Newton-Raphson Method"])
 
-st.sidebar.header("Choose a Method")
-method = st.sidebar.selectbox("Select a method:", ["Newton-Raphson Method", "Bisection Method"])
-
-if method == "Newton-Raphson Method":
-    newton_raphson_method()
-elif method == "Bisection Method":
+if option == "Bisection Method":
     bisection_method()
+elif option == "Newton-Raphson Method":
+    newton_raphson_method()
