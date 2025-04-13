@@ -85,11 +85,15 @@
         pyodide.runPython(script);
 
         pyodide.runPython(`
-A = parse_input_matrix("""${matrixA}""", ${n})
-B = parse_input_vector("""${vectorB}""", ${n})
+matrixA = """${matrixA}"""
+vectorB = """${vectorB}"""
+n = ${n}
+A = [[float(num) for num in row.split()] for row in matrixA.split('\\n')]
+B = [float(x) for x in vectorB.split()]
+
 result = gauss_jordan_elimination(A, B)
         `);
-        
+
         const result = pyodide.globals.get("result").toJs();
         document.getElementById("output").innerText =
           "✅ Solution:\n" +
