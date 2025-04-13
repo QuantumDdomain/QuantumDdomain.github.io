@@ -1,43 +1,41 @@
 import numpy as np
 
 def parse_input_matrix(text, n):
-    rows = text.strip().split('\n')
-    A = []
-    for row in rows:
-        numbers = list(map(float, row.strip().split()))
-        if len(numbers) != n:
-            raise ValueError("Each row of matrix A must have " + str(n) + " numbers.")
-        A.append(numbers)
-    return np.array(A, dtype=float)
+    lines = text.strip().splitlines()
+    A = np.zeros((n, n))
+    for i in range(n):
+        A[i] = list(map(float, lines[i].strip().split()))
+    return A
 
 def parse_input_vector(text, n):
-    numbers = list(map(float, text.strip().split()))
-    if len(numbers) != n:
-        raise ValueError("Vector B must have exactly " + str(n) + " numbers.")
-    return np.array(numbers, dtype=float)
+    return np.array(list(map(float, text.strip().split())), dtype=float)
 
 def gauss_jordan_elimination(A, B):
     n = len(B)
+    A = A.copy()
+    B = B.copy()
+
     for i in range(n):
+        # Partial pivoting
         max_row = i
-        for j in range(i + 1, n):
-            if abs(A[j][i]) > abs(A[max_row][i]):
-                max_row = j
+        for k in range(i + 1, n):
+            if abs(A[k][i]) > abs(A[max_row][i]):
+                max_row = k
 
         if A[max_row][i] == 0:
-            raise ValueError("Matrix is singular or has no unique solution.")
+            raise ValueError("Matrix is singular or no unique solution exists.")
 
         # Swap rows in A and B
         A[[i, max_row]] = A[[max_row, i]]
         B[i], B[max_row] = B[max_row], B[i]
 
-        # Make pivot element 1
+        # Normalize pivot row
         pivot = A[i][i]
         for j in range(n):
             A[i][j] /= pivot
         B[i] /= pivot
 
-        # Eliminate all other elements in current column
+        # Eliminate other rows
         for k in range(n):
             if k != i:
                 factor = A[k][i]
