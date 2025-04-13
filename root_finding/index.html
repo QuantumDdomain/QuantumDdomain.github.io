@@ -107,11 +107,11 @@
       if (algorithm === "bisection") {
         const a = parseFloat(document.getElementById("lower").value);
         const b = parseFloat(document.getElementById("upper").value);
-        code = await (await fetch("root_finding/web_bisection_method.py")).text();
+        code = await (await fetch("web_bisection_method.py")).text();
         inputCode = `result = bisection_method("${expr}", ${a}, ${b})`;
       } else if (algorithm === "newton_raphson") {
         const x0 = parseFloat(document.getElementById("x0").value);
-        code = await (await fetch("root_finding/web_newton_raphson.py")).text();
+        code = await (await fetch("web_newton_raphson.py")).text();
         inputCode = `result = newton_raphson_method("${expr}", ${x0})`;
       }
 
