@@ -4,6 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Root Finder</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.22.2/full/pyodide.js"></script>
+</head>
+<body>
+    <h1>Root Finder using Bisection and Newton-Raphson Methods</h1>
+
+    <label for="algorithmSelect">Choose an Algorithm:</label>
+    <select id="algorithmSelect">
+        <option value="bisection">Bisection Method</option>
+        <option value="newton_raphson">Newton-Raphson Method</option>
+    </select>
+
+    <br><br>
+
+    <label for="func_expr">Enter function f(x):</label>
+    <input type="text" id="func_expr" value="x**3 + 4*x**2 - 10">
+
+    <br><br>
+
+    <!-- Bisection Method Inputs -->
+    <div id="bisectionInputs">
+        <label for="lower">Enter lower bound (a):</label>
+        <input type="number" id="lower" value="1">
+        <br><br>
+        <label for="upper">Enter upper bound (b):</label>
+        <input type="number" id="upper" value="2">
+        <br><br>
+    </div>
+
+    <!-- Newton-Raphson Method Inputs -->
+    <div id="newtonInputs">
+        <label for="x0">Enter initial guess (x0):</label>
+        <input type="number" id="x0" value="1">
+        <br><br>
+    </div>
+
+    <button onclick="loadPyodideAndRun()">Find Root</button>
+
+    <div id="output"></div>
+
+    <!-- JavaScript to handle Pyodide and run Python code -->
     <script type="text/javascript">
         let pyodideReady = false;
 
@@ -23,23 +63,31 @@
             if (algorithm === 'bisection') {
                 a = parseFloat(document.getElementById("lower").value);
                 b = parseFloat(document.getElementById("upper").value);
+                if (isNaN(a) || isNaN(b)) {
+                    alert("Please enter valid numeric values for the lower and upper bounds.");
+                    return;
+                }
                 console.log("Bisection - a:", a, "b:", b);  // Log to ensure they are numbers
                 pythonCode = await fetch('web_bisection_method.py').then(res => res.text());
             } else if (algorithm === 'newton_raphson') {
                 x0 = parseFloat(document.getElementById("x0").value);
+                if (isNaN(x0)) {
+                    alert("Please enter a valid numeric value for the initial guess (x0).");
+                    return;
+                }
                 console.log("Newton-Raphson - x0:", x0);  // Log to ensure x0 is defined
                 pythonCode = await fetch('web_newton_raphson.py').then(res => res.text());
             }
 
             // Ensure both methods are available in the code
             const fullCode = `
-    ${pythonCode}
-    if ('a' in locals() and 'b' in locals()):
-      result = bisection_method("${expr}", ${a}, ${b})
-    else:
-      result = newton_raphson_method("${expr}", ${x0})
-    result
-    `;
+          ${pythonCode}
+          if ('a' in locals() and 'b' in locals()):
+            result = bisection_method("${expr}", ${a}, ${b})
+          else:
+            result = newton_raphson_method("${expr}", ${x0})
+          result
+          `;
 
             try {
                 const result = await pyodide.runPythonAsync(fullCode);
@@ -49,63 +97,6 @@
                 document.getElementById("output").textContent = "Error: " + error;
             }
         }
-    </script>
-</head>
-<body>
-    <h1>Root Finder Using Bisection and Newton-Raphson Methods</h1>
-    
-    <!-- Algorithm Selection -->
-    <label for="algorithmSelect">Select Algorithm:</label>
-    <select id="algorithmSelect">
-        <option value="bisection">Bisection Method</option>
-        <option value="newton_raphson">Newton-Raphson Method</option>
-    </select>
-
-    <!-- Function Input -->
-    <br>
-    <label for="func_expr">Function f(x):</label>
-    <input type="text" id="func_expr" value="x**3 + 4*x**2 - 10">
-    <br><br>
-
-    <!-- Input Fields for Bisection Method -->
-    <div id="bisectionInputs">
-        <label for="lower">Lower bound (a):</label>
-        <input type="number" id="lower" value="1" step="any">
-        <br>
-        <label for="upper">Upper bound (b):</label>
-        <input type="number" id="upper" value="2" step="any">
-        <br><br>
-    </div>
-
-    <!-- Input Fields for Newton-Raphson Method -->
-    <div id="newtonInputs">
-        <label for="x0">Initial guess (x0):</label>
-        <input type="number" id="x0" value="1" step="any">
-        <br><br>
-    </div>
-
-    <!-- Result Display -->
-    <div>
-        <button onclick="loadPyodideAndRun()">Find Root</button>
-    </div>
-
-    <div id="output"></div>
-
-    <script type="text/javascript">
-        // Show/hide input fields based on selected algorithm
-        document.getElementById("algorithmSelect").addEventListener("change", function() {
-            const algorithm = this.value;
-            if (algorithm === 'bisection') {
-                document.getElementById("bisectionInputs").style.display = "block";
-                document.getElementById("newtonInputs").style.display = "none";
-            } else {
-                document.getElementById("bisectionInputs").style.display = "none";
-                document.getElementById("newtonInputs").style.display = "block";
-            }
-        });
-
-        // Set initial display based on default algorithm (Bisection)
-        document.getElementById("algorithmSelect").dispatchEvent(new Event("change"));
     </script>
 </body>
 </html>
