@@ -46,38 +46,38 @@
       let code = "";
       let inputCode = "";
 
-      if (algorithm === "bisection") {
-        const a = parseFloat(document.getElementById("lower").value);
-        const b = parseFloat(document.getElementById("upper").value);
-        code = await (await fetch("web_bisection_method.py")).text();
-        inputCode = `result = bisection_method("${expr}", ${a}, ${b})`;
-      } else if (algorithm === "newton_raphson") {
-        const x0 = parseFloat(document.getElementById("x0").value);
-        code = await (await fetch("web_newton_raphson.py")).text();
-        inputCode = `result = newton_raphson_method("${expr}", ${x0})`;
-      }
-
       try {
+        if (algorithm === "bisection") {
+          const a = parseFloat(document.getElementById("lower").value);
+          const b = parseFloat(document.getElementById("upper").value);
+          if (isNaN(a) || isNaN(b)) throw new Error("Invalid bounds for Bisection.");
+          code = await (await fetch("web_bisection_method.py")).text();
+          inputCode = `result = bisection_method("${expr}", ${a}, ${b})`;
+        } else if (algorithm === "newton_raphson") {
+          const x0 = parseFloat(document.getElementById("x0").value);
+          if (isNaN(x0)) throw new Error("Invalid initial guess for Newton-Raphson.");
+          code = await (await fetch("web_newton_raphson.py")).text();
+          inputCode = `result = newton_raphson_method("${expr}", ${x0})`;
+        }
+
         await pyodide.runPythonAsync(code + "\n" + inputCode);
         const result = pyodide.globals.get("result");
-        document.getElementById("output").textContent = `Root: ${result}`;
+        document.getElementById("output").textContent = `✅ Root: ${result}`;
       } catch (err) {
-        document.getElementById("output").textContent = "Error: " + err;
-        console.error(err);
+        document.getElementById("output").textContent = "❌ Error: " + err.message;
+        console.error("Python execution error:", err);
       }
     }
 
-    // Dynamic input display
     document.getElementById("algorithmSelect").addEventListener("change", function () {
       const algo = this.value;
       document.getElementById("bisectionInputs").style.display = (algo === "bisection") ? "block" : "none";
       document.getElementById("newtonRaphsonInputs").style.display = (algo === "newton_raphson") ? "block" : "none";
     });
 
-    // Pyodide loading status
     pyodideReadyPromise
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to compute!")
-      .catch(err => document.getElementById("output").textContent = "Failed to load Pyodide.");
+      .then(() => document.getElementById("output").textContent = "✅ Pyodide loaded. Ready to compute!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
   </script>
 </body>
 </html>
