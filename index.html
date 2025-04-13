@@ -12,7 +12,7 @@
       padding: 20px;
     }
     .container {
-      max-width: 900px;
+      max-width: 600px;
       margin: auto;
       background: white;
       padding: 30px;
@@ -23,30 +23,16 @@
       text-align: center;
       color: #2c3e50;
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 20px 0;
-    }
-    li {
-      margin: 15px 0;
-      font-size: 18px;
-    }
-    a {
-      text-decoration: none;
-      color: #3498db;
-      font-size: 18px;
-      transition: color 0.3s;
-    }
-    a:hover {
-      color: #2980b9;
-    }
     .section-link {
       display: block;
+      margin: 15px 0;
       padding: 12px;
       background-color: #ecf0f1;
       border-radius: 8px;
       text-align: center;
+      text-decoration: none;
+      font-size: 18px;
+      color: #3498db;
     }
     .section-link:hover {
       background-color: #dfe6e9;
@@ -56,31 +42,13 @@
 <body>
   <div class="container">
     <h1>Welcome to Numerical Methods</h1>
-    <p>Explore various numerical methods implemented in this website.</p>
-    
-    <ul>
-      <li>
-        <div class="section-link">
-          <a href="root_finding/">Root Finding Methods</a>
-        </div>
-      </li>
-      <li>
-        <div class="section-link">
-          <a href="linear_equation_solver/">Linear Equation Solver</a>
-        </div>
-      </li>
-      <li>
-        <div class="section-link">
-          <a href="integration/">Integration Methods</a>
-        </div>
-      </li>
-      <li>
-        <div class="section-link">
-          <a href="derivative/">Derivative Methods</a>
-        </div>
-      </li>
-      <!-- Add more sections as you add more methods -->
-    </ul>
+
+    <a class="section-link" href="root_finding/">Root Finding Methods</a>
+    <a class="section-link" href="linear_solver/">Linear Equation Solver</a>
+    <a class="section-link" href="integration/">Integration Methods</a>
+    <a class="section-link" href="derivatives/">Derivatives</a>
+    <!-- Add more links here for other sections as needed -->
+
   </div>
 </body>
 </html>
