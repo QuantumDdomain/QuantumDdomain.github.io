@@ -12,7 +12,7 @@
       padding: 20px;
     }
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
       background: white;
       padding: 30px;
@@ -22,20 +22,40 @@
     h1 {
       text-align: center;
       color: #2c3e50;
+      font-size: 36px;
+      margin-bottom: 20px;
     }
     .section-link {
       display: block;
       margin: 15px 0;
-      padding: 12px;
+      padding: 15px;
       background-color: #ecf0f1;
       border-radius: 8px;
       text-align: center;
       text-decoration: none;
       font-size: 18px;
       color: #3498db;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
     }
     .section-link:hover {
       background-color: #dfe6e9;
+      color: #2980b9;
+      transform: scale(1.05);
+    }
+    .section-link:active {
+      background-color: #bdc3c7;
+      transform: scale(1);
+    }
+    .section-link:focus {
+      outline: none;
+      border: 2px solid #3498db;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #7f8c8d;
     }
   </style>
 </head>
@@ -50,5 +70,10 @@
     <!-- Add more links here for other sections as needed -->
 
   </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Numerical Methods | Designed by YourName</p>
+  </div>
+
 </body>
 </html>
