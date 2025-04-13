@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Choose Algorithm - Python in Browser</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background-color: #f4f4f9; color: #333; }
+    input, button, select { margin: 10px 0; padding: 10px; font-size: 1rem; }
+    button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .container { max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    h1, h2 { color: #333; }
+    label { display: block; margin-top: 15px; }
+    input[type="number"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    .output { background-color: #f1f1f1; padding: 10px; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Root Finder - Choose Algorithm</h1>
+    <label>Select Algorithm:</label>
+    <select id="algorithmSelect" onchange="toggleInputs()">
+      <option value="bisection">Bisection Method</option>
+      <option value="newton_raphson">Newton-Raphson Method</option>
+    </select>
+
+    <label>Function f(x):</label>
+    <input id="func_expr" type="text" value="x**3 + 4*x**2 - 10">
+
+    <!-- Bisection Method Input Fields (showing only for Bisection) -->
+    <div id="bisectionFields">
+      <label>Lower bound (a):</label>
+      <input id="lower" type="number" value="1.0">
+      <label>Upper bound (b):</label>
+      <input id="upper" type="number" value="2.0">
+    </div>
+
+    <!-- Newton-Raphson Method Input Field (showing only for Newton-Raphson) -->
+    <div id="newtonRaphsonFields" style="display:none;">
+      <label>Initial Guess (x0):</label>
+      <input id="x0" type="number" value="1.0">
+    </div>
+
+    <button onclick="runPython()">Run Algorithm</button>
+
+    <h2>Output:</h2>
+    <pre id="output" class="output">Waiting for input...</pre>
+  </div>
+
+  <script>
+    let pyodideReady = false;
+    
+    // Toggle input fields based on selected algorithm
+    function toggleInputs() {
+      const algorithm = document.getElementById("algorithmSelect").value;
+      if (algorithm === "bisection") {
+        document.getElementById("bisectionFields").style.display = "block";
+        document.getElementById("newtonRaphsonFields").style.display = "none";
+      } else if (algorithm === "newton_raphson") {
+        document.getElementById("bisectionFields").style.display = "none";
+        document.getElementById("newtonRaphsonFields").style.display = "block";
+      }
+    }
+
+    // Run the Python code
+    async function runPython() {
+      if (!pyodideReady) {
+        window.pyodide = await loadPyodide();
+        pyodideReady = true;
+      }
+
+      const algorithm = document.getElementById("algorithmSelect").value;
+      const expr = document.getElementById("func_expr").value;
+
+      let pythonCode = '';
+      let a, b, x0;
+
+      if (algorithm === 'bisection') {
+        a = parseFloat(document.getElementById("lower").value);
+        b = parseFloat(document.getElementById("upper").value);
+        pythonCode = await fetch('web_bisection_method.py').then(res => res.text());
+      } else if (algorithm === 'newton_raphson') {
+        x0 = parseFloat(document.getElementById("x0").value);
+        pythonCode = await fetch('web_newton_raphson.py').then(res => res.text());
+      }
+
+      const fullCode = `
+${pythonCode}
+if ('a' in locals() and 'b' in locals()):
+  result = bisection_method("${expr}", ${a}, ${b})
+else:
+  result = newton_raphson_method("${expr}", ${x0})
+result
+      `;
+
+      try {
+        const result = await pyodide.runPythonAsync(fullCode);
+        document.getElementById("output").textContent = "Root: " + result;
+      } catch (error) {
+        document.getElementById("output").textContent = "Error: " + error;
+      }
+    }
+
+    // Call toggle function on page load to ensure correct inputs are visible
+    window.onload = toggleInputs;
+  </script>
+</body>
+</html>
