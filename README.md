@@ -9,6 +9,7 @@ This is a web-based tool built to demonstrate and interact with various **numeri
 - Python 🐍
 - NumPy
 - Matplotlib
+- sympy
 
 ---
 
