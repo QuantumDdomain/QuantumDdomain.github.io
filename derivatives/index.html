@@ -18,7 +18,7 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    input, select, button {
+    textarea, input, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -51,28 +51,38 @@
   <div class="container">
     <h1>Derivative Calculator</h1>
 
-    <label for="expr">Function (in terms of x):</label>
-    <input type="text" id="expr" placeholder="e.g., sin(x) + x**2" value="sin(x) + x**2">
+    <label for="expression">Enter Function (in terms of x):</label>
+    <input type="text" id="expression" placeholder="Example: sin(x) + x**2" />
 
-    <label for="xval">Value of x:</label>
-    <input type="number" id="xval" step="any" placeholder="e.g., 0.5" value="0.5">
+    <label for="xval">Enter x value:</label>
+    <input type="number" id="xval" value="1" />
 
-    <label for="hval">Step size h:</label>
-    <input type="number" id="hval" step="any" placeholder="e.g., 0.01" value="0.01">
+    <label for="hval">Enter h value:</label>
+    <input type="number" id="hval" value="0.01" />
 
-    <label for="method">First Derivative Method:</label>
-    <select id="method">
-      <option value="3">3-Point Method</option>
-      <option value="5">5-Point Method</option>
+    <label for="derivative_type">Choose Derivative Type:</label>
+    <select id="derivative_type" onchange="toggleDerivativeOptions()">
+      <option value="first">First Derivative</option>
+      <option value="second">Second Derivative</option>
     </select>
 
-    <label>
-      <input type="checkbox" id="second"> Compute Second Derivative
-    </label>
+    <!-- First Derivative Options -->
+    <div id="first_derivative_options" style="display: block;">
+      <label for="method">Choose Method:</label>
+      <select id="method">
+        <option value="3">3-Point Formula</option>
+        <option value="5">5-Point Formula</option>
+      </select>
+    </div>
 
-    <button onclick="calculate()">Calculate</button>
+    <!-- Second Derivative Option (Message Only) -->
+    <div id="second_derivative_options" style="display: none;">
+      <label for="method">Second Derivative is calculated.</label>
+    </div>
 
-    <div id="output">Loading Pyodide...</div>
+    <button onclick="calculate()">Calculate Derivative</button>
+
+    <div id="output">Waiting for input...</div>
   </div>
 
   <script>
@@ -81,42 +91,58 @@
       return pyodide;
     })();
 
-    async function calculate() {
-    const pyodide = await pyodideReady;
-    const expr = document.getElementById("expression").value;
-    const xval = document.getElementById("xval").value;
-    const hval = document.getElementById("hval").value;
-    const method = document.querySelector('input[name="method"]:checked').value;
-    const second = document.getElementById("second").checked;
-
-    try {
-        const result = await pyodide.runPythonAsync(`
-            from web_derivative import calculate_derivatives
-            result = calculate_derivatives("${expr}", "${xval}", "${hval}", "${method}", ${second})
-            print(f"Result from Python: {result}")  # Debugging output
-            result
-        `);
-
-        console.log("Result from Python:", result);  // Check the output in the console
-
-        // Update UI with the results
-        let output = "";
-        if (result.first !== undefined) {
-            output += "First Derivative: " + result.first + "\n";
-        }
-        if (result.second !== undefined) {
-            output += "Second Derivative: " + result.second + "\n";
-        }
-
-        document.getElementById("output").innerText = output;
-    } catch (error) {
-        document.getElementById("output").innerText = `Error: ${error}`;
+    function toggleDerivativeOptions() {
+      const derivativeType = document.getElementById("derivative_type").value;
+      if (derivativeType === "first") {
+        document.getElementById("first_derivative_options").style.display = "block";
+        document.getElementById("second_derivative_options").style.display = "none";
+      } else {
+        document.getElementById("first_derivative_options").style.display = "none";
+        document.getElementById("second_derivative_options").style.display = "block";
+      }
     }
-}
 
+    async function calculate() {
+      const pyodide = await pyodideReady;
+      const expr = document.getElementById("expression").value;
+      const xval = document.getElementById("xval").value;
+      const hval = document.getElementById("hval").value;
+      const method = document.getElementById("method") ? document.getElementById("method").value : null;
+      const derivativeType = document.getElementById("derivative_type").value;
+
+      try {
+        let result;
+        if (derivativeType === "first") {
+          if (method === "3") {
+            const script = await (await fetch("point_3_first_derivative.py")).text();
+            pyodide.runPython(script);
+            result = pyodide.runPython(`
+              calculate_first_derivative("${expr}", ${xval}, ${hval})
+            `);
+          } else if (method === "5") {
+            const script = await (await fetch("point_5_first_derivative.py")).text();
+            pyodide.runPython(script);
+            result = pyodide.runPython(`
+              calculate_first_derivative("${expr}", ${xval}, ${hval})
+            `);
+          }
+        } else if (derivativeType === "second") {
+          // Always use the 5-point formula for second derivative
+          const script = await (await fetch("second_derivative.py")).text();
+          pyodide.runPython(script);
+          result = pyodide.runPython(`
+            calculate_second_derivative("${expr}", ${xval}, ${hval})
+          `);
+        }
+
+        document.getElementById("output").innerText = `Result: ${result}`;
+      } catch (err) {
+        document.getElementById("output").innerText = `❌ Error: ${err}`;
+      }
+    }
 
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate.")
+      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
       .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
   </script>
 </body>
