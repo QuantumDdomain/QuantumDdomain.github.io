@@ -5,7 +5,6 @@
   <title>Integration Calculator</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
-    /* Add your existing styles here */
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
@@ -61,8 +60,11 @@
     <label for="b">Upper bound (b):</label>
     <input type="number" id="b" value="1" step="any" />
 
-    <label for="n">Number of subintervals (n):</label>
-    <input type="number" id="n" value="100" min="1" />
+    <!-- Subinterval input wrapped for toggle -->
+    <div id="nContainer">
+      <label for="n">Number of subintervals (n):</label>
+      <input type="number" id="n" value="100" min="1" />
+    </div>
 
     <label for="methodType">Choose integration method:</label>
     <select id="methodType" onchange="toggleMethod()">
@@ -93,23 +95,19 @@
       return pyodide;
     })();
 
-      // Toggle method UI visibility based on user's selection
     function toggleMethod() {
       const methodType = document.getElementById("methodType").value;
-
-      // Toggle Gaussian method dropdown
       const gaussianMethods = document.getElementById("gaussianMethods");
       const nContainer = document.getElementById("nContainer");
 
       if (methodType === "gaussian") {
-      gaussianMethods.style.display = "block";   // Show Gaussian options
-      nContainer.style.display = "none";         // Hide n for Gaussian
+        gaussianMethods.style.display = "block";
+        nContainer.style.display = "none";
       } else {
-      gaussianMethods.style.display = "none";    // Hide Gaussian options
-      nContainer.style.display = "block";        // Show n for others
+        gaussianMethods.style.display = "none";
+        nContainer.style.display = "block";
       }
     }
-
 
     async function calculate() {
       const pyodide = await pyodideReady;
@@ -128,7 +126,7 @@
         if (methodType === "trapezoidal") {
           scriptFile = "trapezoidal.py";
           description = "✅ Integral is calculated using Trapezoidal Rule:";
-          pythonCode = `trapezoidal_rule(${a}, ${b}, ${n}, "${expr}")`;  // Using 100 subintervals as an example
+          pythonCode = `trapezoidal_rule(${a}, ${b}, ${n}, "${expr}")`;
         } else if (methodType === "simpson") {
           scriptFile = "simpson.py";
           description = "✅ Integral is calculated using Simpson's 1/3 Rule:";
@@ -158,6 +156,8 @@
     pyodideReady
       .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
       .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+
+    document.addEventListener("DOMContentLoaded", toggleMethod);
   </script>
 </body>
 </html>
