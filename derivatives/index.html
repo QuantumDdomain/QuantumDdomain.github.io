@@ -8,6 +8,7 @@
     body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2em; }
     input, select, button { padding: 0.5em; margin-top: 1em; width: 100%; }
     .result { margin-top: 1em; background: #f0f0f0; padding: 1em; border-radius: 8px; }
+    .error { color: red; }
   </style>
 </head>
 <body>
@@ -37,34 +38,52 @@
   <div id="output" class="result"></div>
 
   <script>
-    let pyodideReady = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+    let pyodide = null;
+
+    async function main() {
+      console.log("Loading Pyodide...");
+      pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+      console.log("Pyodide loaded!");
+
+      // Load your Python script
+      const response = await fetch("web_derivative.py");
+      const pythonCode = await response.text();
+      await pyodide.runPythonAsync(pythonCode);
+      console.log("web_derivative.py loaded.");
+    }
+
+    main().catch(err => {
+      document.getElementById("output").innerHTML = `<div class="error">Error loading Pyodide: ${err}</div>`;
+      console.error(err);
+    });
 
     async function runPython() {
-      const pyodide = await pyodideReady;
-
-      const expr = document.getElementById("expr").value;
-      const xval = document.getElementById("xval").value;
-      const hval = document.getElementById("hval").value;
-      const method = document.getElementById("method").value;
-      const second = document.getElementById("second").checked;
-
-      await pyodide.loadPackage("micropip");
-      await pyodide.runPythonAsync(`
-        import sys
-        sys.path.append('.')
-        from script import calculate_derivatives
-      `);
-
-      const result = pyodide.globals
-        .get("calculate_derivatives")(expr, xval, hval, method, second)
-        .toJs();
-
-      let output = `<b>First Derivative (${method}-point):</b> ${result["first"]}<br>`;
-      if ("second" in result) {
-        output += `<b>Second Derivative:</b> ${result["second"]}`;
+      if (!pyodide) {
+        document.getElementById("output").innerHTML = "<div class='error'>Pyodide is still loading...</div>";
+        return;
       }
 
-      document.getElementById("output").innerHTML = output;
+      try {
+        const expr = document.getElementById("expr").value;
+        const xval = document.getElementById("xval").value;
+        const hval = document.getElementById("hval").value;
+        const method = document.getElementById("method").value;
+        const second = document.getElementById("second").checked;
+
+        let result = pyodide.globals
+          .get("calculate_derivatives")(expr, xval, hval, method, second)
+          .toJs();
+
+        let output = `<b>First Derivative (${method}-point):</b> ${result["first"]}<br>`;
+        if ("second" in result) {
+          output += `<b>Second Derivative:</b> ${result["second"]}`;
+        }
+
+        document.getElementById("output").innerHTML = output;
+      } catch (err) {
+        document.getElementById("output").innerHTML = `<div class="error">Error: ${err}</div>`;
+        console.error(err);
+      }
     }
   </script>
 </body>
