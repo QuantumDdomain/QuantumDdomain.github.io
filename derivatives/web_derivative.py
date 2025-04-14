@@ -1,13 +1,19 @@
 import math
 
 def point_3_dy(fn, x1, h1):  
-    return (fn(x1 + h1) - fn(x1 - h1)) / (2 * h1)
+    result = (fn(x1 + h1) - fn(x1 - h1)) / (2 * h1)
+    print(f"3-point first derivative: {result}")  # Debugging
+    return result
 
 def point_5_dy(fn, x1, h1):  
-    return (-fn(x1 + 2*h1) + 8*fn(x1 + h1) - 8*fn(x1 - h1) + fn(x1 - 2*h1)) / (12 * h1)
+    result = (-fn(x1 + 2*h1) + 8*fn(x1 + h1) - 8*fn(x1 - h1) + fn(x1 - 2*h1)) / (12 * h1)
+    print(f"5-point first derivative: {result}")  # Debugging
+    return result
 
 def d2y(fn, x2, h2):  
-    return (fn(x2 + h2) - 2 * fn(x2) + fn(x2 - h2)) / (h2 ** 2)
+    result = (fn(x2 + h2) - 2 * fn(x2) + fn(x2 - h2)) / (h2 ** 2)
+    print(f"Second derivative: {result}")  # Debugging
+    return result
 
 def calculate_derivatives(expr, xval, hval, method="3", second=False):
     import math
@@ -41,4 +47,5 @@ def calculate_derivatives(expr, xval, hval, method="3", second=False):
     if second:
         result["second"] = d2y(user_func, x, h)
 
+    print(f"Final result: {result}")  # Debugging
     return result
