@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Derivative Calculator</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2em; }
+    input, select, button { padding: 0.5em; margin-top: 1em; width: 100%; }
+    .result { margin-top: 1em; background: #f0f0f0; padding: 1em; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Derivative Calculator</h1>
+
+  <label>Function (in terms of x):</label>
+  <input id="expr" placeholder="e.g., sin(x) + x**2">
+
+  <label>Value of x:</label>
+  <input id="xval" type="number" placeholder="e.g., 0.5">
+
+  <label>Step size h:</label>
+  <input id="hval" type="number" placeholder="e.g., 0.01">
+
+  <label>First Derivative Method:</label>
+  <select id="method">
+    <option value="3">3-Point Method</option>
+    <option value="5">5-Point Method</option>
+  </select>
+
+  <label>
+    <input type="checkbox" id="second"> Compute Second Derivative
+  </label>
+
+  <button onclick="runPython()">Calculate</button>
+
+  <div id="output" class="result"></div>
+
+  <script>
+    let pyodideReady = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+
+    async function runPython() {
+      const pyodide = await pyodideReady;
+
+      const expr = document.getElementById("expr").value;
+      const xval = document.getElementById("xval").value;
+      const hval = document.getElementById("hval").value;
+      const method = document.getElementById("method").value;
+      const second = document.getElementById("second").checked;
+
+      await pyodide.loadPackage("micropip");
+      await pyodide.runPythonAsync(`
+        import sys
+        sys.path.append('.')
+        from script import calculate_derivatives
+      `);
+
+      const result = pyodide.globals
+        .get("calculate_derivatives")(expr, xval, hval, method, second)
+        .toJs();
+
+      let output = `<b>First Derivative (${method}-point):</b> ${result["first"]}<br>`;
+      if ("second" in result) {
+        output += `<b>Second Derivative:</b> ${result["second"]}`;
+      }
+
+      document.getElementById("output").innerHTML = output;
+    }
+  </script>
+</body>
+</html>
