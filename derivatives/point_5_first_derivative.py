@@ -1,10 +1,15 @@
-import math
+import sympy as sp
 
-def point_5_dy(fn, x1, h1):
-    return (-fn(x1 + 2*h1) + 8*fn(x1 + h1) - 8*fn(x1 - h1) + fn(x1 - 2*h1)) / (12 * h1)
-
-def calculate_first_derivative(expr, x, h):
-    def user_func(x):
-        return eval(expr, {"__builtins__": None}, {"x": x, "math": math})
+def calculate_first_derivative(expr, xval, hval):
+    # Define symbol
+    x = sp.symbols('x')
     
-    return point_5_dy(user_func, x, h)
+    # Convert user string to symbolic expression
+    func = sp.sympify(expr)
+
+    # Apply 5-point central difference formula for first derivative:
+    # f'(x) ≈ [f(x-2h) - 8f(x-h) + 8f(x+h) - f(x+2h)] / (12h)
+    derivative = (-func.subs(x, xval + 2*hval) + 8*func.subs(x, xval + hval) -
+                  8*func.subs(x, xval - hval) + func.subs(x, xval - 2*hval)) / (12*hval)
+
+    return derivative

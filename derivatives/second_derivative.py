@@ -1,10 +1,10 @@
-import math
+import sympy as sp
 
-def d2y(fn, x2, h2):
-    return (fn(x2 + h2) - 2*fn(x2) + fn(x2 - h2)) / (h2 ** 2)
+def calculate_second_derivative(expr, xval, hval):
+    # Use sympy to parse the expression
+    x = sp.symbols('x')
+    func = sp.sympify(expr)
 
-def calculate_second_derivative(expr, x, h):
-    def user_func(x):
-        return eval(expr, {"__builtins__": None}, {"x": x, "math": math})
-    
-    return d2y(user_func, x, h)
+    # 5-Point Formula for second derivative
+    second_derivative = (func.subs(x, xval + hval) - 2*func.subs(x, xval) + func.subs(x, xval - hval)) / (hval**2)
+    return second_derivative

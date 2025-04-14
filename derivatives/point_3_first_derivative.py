@@ -1,10 +1,10 @@
-import math
+import sympy as sp
 
-def point_3_dy(fn, x1, h1):
-    return (fn(x1 + h1) - fn(x1 - h1)) / (2 * h1)
+def calculate_first_derivative(expr, xval, hval):
+    # Use sympy to parse the expression and handle it properly
+    x = sp.symbols('x')
+    func = sp.sympify(expr)
 
-def calculate_first_derivative(expr, x, h):
-    def user_func(x):
-        return eval(expr, {"__builtins__": None}, {"x": x, "math": math})
-    
-    return point_3_dy(user_func, x, h)
+    # 3-Point Formula for first derivative
+    derivative = (func.subs(x, xval + hval) - func.subs(x, xval - hval)) / (2 * hval)
+    return derivative
