@@ -71,7 +71,13 @@
       <select id="method">
         <option value="3">3-Point Formula</option>
         <option value="5">5-Point Formula</option>
+        <option value="richardson">Richardson's Extrapolation</option>
       </select>
+    </div>
+
+    <div id="rvalDiv" style="display: none;">
+      <label for="rval">Enter refinement factor r:</label>
+      <input type="number" id="rval" value="2" step="any" />
     </div>
 
     <button onclick="calculate()">Calculate</button>
@@ -88,8 +94,15 @@
 
     function toggleMethod() {
       const derivType = document.getElementById("derivType").value;
-      document.getElementById("methodSelect").style.display = derivType === "first" ? "block" : "none";
+      const methodSelect = document.getElementById("methodSelect");
+      const rvalDiv = document.getElementById("rvalDiv");
+      methodSelect.style.display = derivType === "first" ? "block" : "none";
+
+      const method = document.getElementById("method").value;
+      rvalDiv.style.display = method === "richardson" ? "block" : "none";
     }
+
+    document.getElementById("method").addEventListener("change", toggleMethod);
 
     async function calculate() {
       const pyodide = await pyodideReady;
@@ -98,6 +111,7 @@
       const hval = parseFloat(document.getElementById("hval").value);
       const derivType = document.getElementById("derivType").value;
       const method = document.getElementById("method").value;
+      const rval = parseFloat(document.getElementById("rval").value || "2");
 
       let scriptFile = "";
       let pythonCode = "";
@@ -109,10 +123,14 @@
             scriptFile = "point_3_first_derivative.py";
             description = "✅ First Derivative is calculated using 3-Point Formula:";
             pythonCode = `calculate_first_derivative("${expr}", ${xval}, ${hval})`;
-          } else {
+          } else if (method === "5") {
             scriptFile = "point_5_first_derivative.py";
             description = "✅ First Derivative is calculated using 5-Point Formula:";
             pythonCode = `calculate_first_derivative("${expr}", ${xval}, ${hval})`;
+          } else {
+            scriptFile = "richardson.py";
+            description = "✅ First Derivative is calculated using Richardson's Extrapolation:";
+            pythonCode = `richardson_extrapolation("${expr}", ${xval}, ${rval}, ${hval})`;
           }
         } else {
           scriptFile = "second_derivative.py";
