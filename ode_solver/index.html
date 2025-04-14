@@ -1,53 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ODE Solver</title>
+  <meta charset="UTF-8" />
+  <title>ODE Solver - Home</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #34495e;
+      color: white;
+      padding: 20px;
       text-align: center;
-      padding: 40px;
-      background-color: #f0f2f5;
     }
 
     h1 {
-      color: #2c3e50;
+      margin: 0;
     }
 
-    .link-box {
-      display: inline-block;
-      margin: 20px;
-      padding: 20px 30px;
-      background-color: #ecf0f1;
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .link-card {
+      margin: 20px 0;
+      padding: 20px;
+      border: 2px solid #3498db;
       border-radius: 10px;
-      text-decoration: none;
-      color: #3498db;
-      font-size: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: 0.3s ease;
+      transition: all 0.3s ease;
     }
 
-    .link-box:hover {
-      background-color: #dfe6e9;
-      color: #2980b9;
+    .link-card:hover {
+      background-color: #3498db;
+      color: white;
+    }
+
+    a {
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: bold;
+      color: #3498db;
+    }
+
+    .link-card:hover a {
+      color: white;
     }
 
     footer {
-      margin-top: 50px;
-      font-size: 14px;
-      color: #7f8c8d;
+      text-align: center;
+      padding: 20px;
+      color: #999;
     }
   </style>
 </head>
 <body>
-  <h1>ODE Solver Dashboard</h1>
 
-  <a href="euler.html" class="link-box">Euler Method</a>
-  <a href="runge_kutta.html" class="link-box">Runge-Kutta Method</a>
+  <header>
+    <h1>ODE Solver</h1>
+    <p>Choose a method to solve ordinary differential equations</p>
+  </header>
+
+  <div class="container">
+    <div class="link-card">
+      <a href="euler.html">Euler Method</a>
+    </div>
+
+    <div class="link-card">
+      <a href="runge_kutta.html">Runge-Kutta Method (2nd, 3rd, 4th Order)</a>
+    </div>
+  </div>
 
   <footer>
-    <p>&copy; 2025 ODE Solver | Braja Gopal Das</p>
+    &copy; 2025 ODE Solver | Braja Gopal Das
   </footer>
+
 </body>
 </html>

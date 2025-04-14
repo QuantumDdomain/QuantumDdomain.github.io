@@ -4,66 +4,118 @@
   <meta charset="UTF-8" />
   <title>Runge-Kutta Method</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #9b59b6;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #8e44ad;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body>
-  <h2>Runge-Kutta Method</h2>
+  <div class="container">
+    <h1>Runge-Kutta Method</h1>
 
-  <label>f(x, y):</label>
-  <input type="text" id="function" placeholder="e.g. x + y"><br>
+    <label for="expr">Enter dy/dx = f(x, y):</label>
+    <input type="text" id="expr" value="x + y" />
 
-  <label>Order:</label>
-  <select id="order">
-    <option value="2">2nd Order</option>
-    <option value="3">3rd Order</option>
-    <option value="4">4th Order</option>
-  </select><br>
+    <label for="x0">Initial x₀:</label>
+    <input type="number" id="x0" value="0" step="any" />
 
-  <label>x₀:</label>
-  <input type="number" id="x0" step="any" value="0"><br>
+    <label for="y0">Initial y₀:</label>
+    <input type="number" id="y0" value="1" step="any" />
 
-  <label>y₀:</label>
-  <input type="number" id="y0" step="any" value="1"><br>
+    <label for="X">Final X (x target):</label>
+    <input type="number" id="X" value="1" step="any" />
 
-  <label>Final x (X):</label>
-  <input type="number" id="X" step="any" value="1"><br>
+    <label for="h">Step size h:</label>
+    <input type="number" id="h" value="0.1" step="any" />
 
-  <label>Step size (h):</label>
-  <input type="number" id="h" step="any" value="0.1"><br>
+    <label for="order">Choose Order:</label>
+    <select id="order">
+      <option value="2">Second Order</option>
+      <option value="3">Third Order</option>
+      <option value="4">Fourth Order</option>
+    </select>
 
-  <button onclick="runRK()">Compute</button>
+    <button onclick="calculateRK()">Calculate</button>
 
-  <p id="output"></p>
+    <div id="output">Loading Pyodide...</div>
+  </div>
 
   <script>
-    let pyodideReady = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+    let pyodideReady = (async () => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage("sympy");
+      return pyodide;
+    })();
 
-    async function runRK() {
+    async function calculateRK() {
       const pyodide = await pyodideReady;
-
-      await pyodide.loadPackage(["sympy"]);
-
-      // Load external Python file
-      const rkCode = await (await fetch("runge_kutta.py")).text();
-      await pyodide.runPythonAsync(rkCode);
-
-      const f_expr = document.getElementById("function").value;
-      const order = parseInt(document.getElementById("order").value);
+      const expr = document.getElementById("expr").value;
       const x0 = parseFloat(document.getElementById("x0").value);
       const y0 = parseFloat(document.getElementById("y0").value);
       const X = parseFloat(document.getElementById("X").value);
       const h = parseFloat(document.getElementById("h").value);
+      const order = document.getElementById("order").value;
 
-      await pyodide.runPythonAsync(`
-from sympy import symbols, sympify, lambdify
+      const script = await (await fetch("runge_kutta_method.py")).text();
+      pyodide.runPython(script);
+
+      const code = `
+from sympy import symbols, lambdify
 x, y = symbols('x y')
-f_expr = sympify("""${f_expr}""")
-f = lambdify((x, y), f_expr, 'math')
-result = runge_kutta_method(f, ${X}, ${x0}, ${y0}, ${h}, ${order})
-      `);
+f_expr = ${JSON.stringify(expr)}
+f = lambdify((x, y), f_expr, "math")
+runge_kutta_method(f, ${X}, ${x0}, ${y0}, ${h}, ${order})
+      `;
 
-      const result = pyodide.globals.get("result");
-      document.getElementById("output").innerText = `y(${X}) ≈ ${result}`;
+      try {
+        const result = pyodide.runPython(code);
+        document.getElementById("output").innerText = `✅ Result (Order ${order}): y(${X}) = ${result}`;
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ Error: " + err;
+      }
     }
+
+    pyodideReady.then(() => {
+      document.getElementById("output").innerText = "Pyodide loaded. Ready!";
+    });
   </script>
 </body>
 </html>
