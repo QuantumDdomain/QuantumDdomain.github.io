@@ -41,21 +41,20 @@
     let pyodide = null;
 
     async function main() {
-      console.log("Loading Pyodide...");
-      pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
-      console.log("Pyodide loaded!");
-
-      // Load your Python script
-      const response = await fetch("web_derivative.py");
-      const pythonCode = await response.text();
-      await pyodide.runPythonAsync(pythonCode);
-      console.log("web_derivative.py loaded.");
+      document.getElementById("output").textContent = "Loading Pyodide...";
+      try {
+        pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+        const response = await fetch("web_derivative.py");
+        const pythonCode = await response.text();
+        await pyodide.runPythonAsync(pythonCode);
+        document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate.";
+      } catch (err) {
+        document.getElementById("output").innerHTML = `<div class="error">Error loading Pyodide or Python code: ${err}</div>`;
+        console.error(err);
+      }
     }
 
-    main().catch(err => {
-      document.getElementById("output").innerHTML = `<div class="error">Error loading Pyodide: ${err}</div>`;
-      console.error(err);
-    });
+    main();
 
     async function runPython() {
       if (!pyodide) {
@@ -70,18 +69,18 @@
         const method = document.getElementById("method").value;
         const second = document.getElementById("second").checked;
 
-        let result = pyodide.globals
-          .get("calculate_derivatives")(expr, xval, hval, method, second)
-          .toJs();
+        let pyResult = pyodide.globals.get("calculate_derivatives")(
+          expr, xval, hval, method, second
+        ).toJs();
 
-        let output = `<b>First Derivative (${method}-point):</b> ${result["first"]}<br>`;
-        if ("second" in result) {
-          output += `<b>Second Derivative:</b> ${result["second"]}`;
+        let output = `<b>First Derivative (${method}-point):</b> ${pyResult["first"]}<br>`;
+        if ("second" in pyResult) {
+          output += `<b>Second Derivative:</b> ${pyResult["second"]}`;
         }
 
         document.getElementById("output").innerHTML = output;
       } catch (err) {
-        document.getElementById("output").innerHTML = `<div class="error">Error: ${err}</div>`;
+        document.getElementById("output").innerHTML = `<div class="error">Error during calculation: ${err}</div>`;
         console.error(err);
       }
     }

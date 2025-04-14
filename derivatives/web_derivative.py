@@ -1,32 +1,32 @@
 import math
 
-def parse_function(expr):
-    def func(x):
-        return eval(expr, {"x": x, "math": math, **math.__dict__})
-    return func
+def point_3_dy(fn, x1, h1):  
+    return (fn(x1 + h1) - fn(x1 - h1)) / (2 * h1)
 
-def derivative_3_point(f, x, h):
-    return (f(x + h) - f(x - h)) / (2 * h)
+def point_5_dy(fn, x1, h1):  
+    return (-fn(x1 + 2*h1) + 8*fn(x1 + h1) - 8*fn(x1 - h1) + fn(x1 - 2*h1)) / (12 * h1)    
 
-def derivative_5_point(f, x, h):
-    return (-f(x + 2*h) + 8*f(x + h) - 8*f(x - h) + f(x - 2*h)) / (12 * h)
+def d2y(fn, x2, h2):  
+    return (fn(x2 + h2) - 2*fn(x2) + fn(x2 - h2)) / (h2 ** 2)
 
-def second_derivative(f, x, h):
-    return (f(x + h) - 2*f(x) + f(x - h)) / (h ** 2)
+def calculate_derivatives(expr, x_str, h_str, method, do_second):
+    x = float(x_str)
+    h = float(h_str)
 
-def calculate_derivatives(expr, x_val, h_val, method="3", do_second=False):
-    f = parse_function(expr)
-    x = float(x_val)
-    h = float(h_val)
+    # Create the function from string
+    def fn(x_val):
+        return eval(expr, {"x": x_val, "math": math, "sin": math.sin, "cos": math.cos, "tan": math.tan, "exp": math.exp, "log": math.log, "pi": math.pi, "e": math.e})
 
-    result = {}
+    results = {}
 
     if method == "3":
-        result["first"] = derivative_3_point(f, x, h)
+        results["first"] = point_3_dy(fn, x, h)
     elif method == "5":
-        result["first"] = derivative_5_point(f, x, h)
+        results["first"] = point_5_dy(fn, x, h)
+    else:
+        results["first"] = "Invalid method"
 
     if do_second:
-        result["second"] = second_derivative(f, x, h)
+        results["second"] = d2y(fn, x, h)
 
-    return result
+    return results
