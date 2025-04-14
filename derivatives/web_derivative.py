@@ -47,5 +47,7 @@ def calculate_derivatives(expr, xval, hval, method="3", second=False):
     if second:
         result["second"] = d2y(user_func, x, h)
 
-    print(f"Final result: {result}")  # Debugging
+    print(f"Final result from Python: {result}")  # Debugging print
+
     return result
+

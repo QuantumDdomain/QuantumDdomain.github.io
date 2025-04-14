@@ -82,33 +82,38 @@
     })();
 
     async function calculate() {
-      const pyodide = await pyodideReady;
+    const pyodide = await pyodideReady;
+    const expr = document.getElementById("expression").value;
+    const xval = document.getElementById("xval").value;
+    const hval = document.getElementById("hval").value;
+    const method = document.querySelector('input[name="method"]:checked').value;
+    const second = document.getElementById("second").checked;
 
-      const expr = document.getElementById("expr").value;
-      const xval = document.getElementById("xval").value;
-      const hval = document.getElementById("hval").value;
-      const method = document.getElementById("method").value;
-      const second = document.getElementById("second").checked;
+    try {
+        const result = await pyodide.runPythonAsync(`
+            from web_derivative import calculate_derivatives
+            result = calculate_derivatives("${expr}", "${xval}", "${hval}", "${method}", ${second})
+            print(f"Result from Python: {result}")  # Debugging output
+            result
+        `);
 
-      try {
-        const script = await (await fetch("web_derivative.py")).text();
-        pyodide.runPython(script);
+        console.log("Result from Python:", result);  // Check the output in the console
 
-        const result = pyodide.globals.get("calculate_derivatives")(
-          expr, xval, hval, method, second
-        ).toJs();
-
-        let output = `✅ First Derivative (${method}-point): ${result["first"]}`;
-        if ("second" in result) {
-          output += `\n✅ Second Derivative: ${result["second"]}`;
+        // Update UI with the results
+        let output = "";
+        if (result.first !== undefined) {
+            output += "First Derivative: " + result.first + "\n";
+        }
+        if (result.second !== undefined) {
+            output += "Second Derivative: " + result.second + "\n";
         }
 
-        document.getElementById("output").textContent = output;
-      } catch (err) {
-        document.getElementById("output").textContent = "❌ Error: " + err;
-        console.error(err);
-      }
+        document.getElementById("output").innerText = output;
+    } catch (error) {
+        document.getElementById("output").innerText = `Error: ${error}`;
     }
+}
+
 
     pyodideReady
       .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate.")
