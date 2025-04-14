@@ -2,87 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ODE Solver - Home</title>
+  <title>Numerical ODE Solver</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background-color: #34495e;
-      color: white;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
       padding: 20px;
-      text-align: center;
     }
-
-    h1 {
-      margin: 0;
-    }
-
     .container {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .link-card {
-      margin: 20px 0;
-      padding: 20px;
-      border: 2px solid #3498db;
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
       border-radius: 10px;
-      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-
-    .link-card:hover {
+    textarea, input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
       background-color: #3498db;
       color: white;
+      cursor: pointer;
     }
-
-    a {
-      text-decoration: none;
-      font-size: 20px;
-      font-weight: bold;
-      color: #3498db;
+    button:hover {
+      background-color: #2980b9;
     }
-
-    .link-card:hover a {
-      color: white;
-    }
-
-    footer {
+    h1 {
       text-align: center;
-      padding: 20px;
-      color: #999;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
-
-  <header>
-    <h1>ODE Solver</h1>
-    <p>Choose a method to solve ordinary differential equations</p>
-  </header>
-
   <div class="container">
-    <div class="link-card">
-      <a href="euler.html">Euler Method</a>
-    </div>
+    <h1>Numerical ODE Solver</h1>
+    
+    <label for="method">Choose Method:</label>
+    <select id="method">
+      <option value="euler">Euler Method</option>
+      <option value="runge_kutta">Runge-Kutta Method</option>
+    </select>
 
-    <div class="link-card">
-      <a href="runge_kutta.html">Runge-Kutta Method (2nd, 3rd, 4th Order)</a>
-    </div>
+    <button onclick="redirect()">Proceed</button>
+
+    <div id="output">Select method and proceed.</div>
   </div>
 
-  <footer>
-    &copy; 2025 ODE Solver | Braja Gopal Das
-  </footer>
-
+  <script>
+    function redirect() {
+      const method = document.getElementById("method").value;
+      if (method === "euler") {
+        window.location.href = "euler.html";
+      } else if (method === "runge_kutta") {
+        window.location.href = "runge_kutta.html";
+      }
+    }
+  </script>
 </body>
 </html>
