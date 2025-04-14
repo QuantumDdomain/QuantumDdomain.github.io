@@ -60,8 +60,11 @@
     <label for="b">Upper bound (b):</label>
     <input type="number" id="b" value="1" step="any" />
 
-    <!-- Subinterval input wrapped for toggle -->
+    <!-- Subinterval input with Simpson's rule note -->
     <div id="nContainer">
+      <div id="simpsonNote" style="display: none; color: #c0392b; font-weight: bolder;">
+        ⚠️ Simpson's Rule requires an even number of subintervals (n)
+      </div>
       <label for="n">Number of subintervals (n):</label>
       <input type="number" id="n" value="100" min="1" />
     </div>
@@ -73,7 +76,6 @@
       <option value="gaussian">Gaussian Quadrature</option>
     </select>
 
-    <!-- For Gaussian Quadrature Methods -->
     <div id="gaussianMethods" style="display:none;">
       <label for="gaussianMethod">Choose Gaussian method:</label>
       <select id="gaussianMethod">
@@ -99,6 +101,7 @@
       const methodType = document.getElementById("methodType").value;
       const gaussianMethods = document.getElementById("gaussianMethods");
       const nContainer = document.getElementById("nContainer");
+      const simpsonNote = document.getElementById("simpsonNote");
 
       if (methodType === "gaussian") {
         gaussianMethods.style.display = "block";
@@ -106,6 +109,7 @@
       } else {
         gaussianMethods.style.display = "none";
         nContainer.style.display = "block";
+        simpsonNote.style.display = (methodType === "simpson") ? "block" : "none";
       }
     }
 
@@ -116,7 +120,7 @@
       const b = parseFloat(document.getElementById("b").value);
       const n = parseInt(document.getElementById("n").value);
       const methodType = document.getElementById("methodType").value;
-      const gaussianMethod = document.getElementById("gaussianMethod") ? document.getElementById("gaussianMethod").value : null;
+      const gaussianMethod = document.getElementById("gaussianMethod")?.value;
 
       let scriptFile = "";
       let pythonCode = "";
