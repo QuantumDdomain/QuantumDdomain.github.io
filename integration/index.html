@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Integration Calculator</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    /* Add your existing styles here */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Integration Calculator</h1>
+
+    <label for="expr">Enter function f(x):</label>
+    <input type="text" id="expr" value="sin(x)" />
+
+    <label for="a">Lower bound (a):</label>
+    <input type="number" id="a" value="0" step="any" />
+
+    <label for="b">Upper bound (b):</label>
+    <input type="number" id="b" value="1" step="any" />
+
+    <label for="methodType">Choose integration method:</label>
+    <select id="methodType" onchange="toggleMethod()">
+      <option value="trapezoidal">Trapezoidal Rule</option>
+      <option value="simpson">Simpson's 1/3 Rule</option>
+      <option value="gaussian">Gaussian Quadrature</option>
+    </select>
+
+    <!-- For Gaussian Quadrature Methods -->
+    <div id="gaussianMethods" style="display:none;">
+      <label for="gaussianMethod">Choose Gaussian method:</label>
+      <select id="gaussianMethod">
+        <option value="1">Gaussian 1-Point</option>
+        <option value="2">Gaussian 2-Point</option>
+        <option value="3">Gaussian 3-Point</option>
+      </select>
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div id="output">Loading Pyodide...</div>
+  </div>
+
+  <script>
+    let pyodideReady = (async () => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage("sympy");
+      return pyodide;
+    })();
+
+    // Toggle method UI visibility based on user's selection
+    function toggleMethod() {
+      const methodType = document.getElementById("methodType").value;
+
+      // Hide/show method-related elements based on the selected method
+      if (methodType === "gaussian") {
+        document.getElementById("gaussianMethods").style.display = "block"; // Show Gaussian options
+      } else {
+        document.getElementById("gaussianMethods").style.display = "none"; // Hide Gaussian options
+      }
+    }
+
+    async function calculate() {
+      const pyodide = await pyodideReady;
+      const expr = document.getElementById("expr").value;
+      const a = parseFloat(document.getElementById("a").value);
+      const b = parseFloat(document.getElementById("b").value);
+      const methodType = document.getElementById("methodType").value;
+      const gaussianMethod = document.getElementById("gaussianMethod") ? document.getElementById("gaussianMethod").value : null;
+
+      let scriptFile = "";
+      let pythonCode = "";
+      let description = "";
+
+      try {
+        if (methodType === "trapezoidal") {
+          scriptFile = "trapezoidal.py";
+          description = "✅ Integral is calculated using Trapezoidal Rule:";
+          pythonCode = `trapezoidal_rule(${a}, ${b}, 100, "${expr}")`;  // Using 100 subintervals as an example
+        } else if (methodType === "simpson") {
+          scriptFile = "simpson.py";
+          description = "✅ Integral is calculated using Simpson's 1/3 Rule:";
+          pythonCode = `simpsonI_rule(${a}, ${b}, 100, "${expr}")`;
+        } else if (methodType === "gaussian") {
+          scriptFile = "gaussian.py";
+          description = "✅ Integral is calculated using Gaussian Quadrature:";
+          if (gaussianMethod === "1") {
+            pythonCode = `gaussian_quadrature_1_weighting_factor(${a}, ${b}, "${expr}")`;
+          } else if (gaussianMethod === "2") {
+            pythonCode = `gaussian_quadrature_2_weighting_factor(${a}, ${b}, "${expr}")`;
+          } else {
+            pythonCode = `gaussian_quadrature_3_weighting_factor(${a}, ${b}, "${expr}")`;
+          }
+        }
+
+        const script = await (await fetch(scriptFile)).text();
+        pyodide.runPython(script);
+        const result = pyodide.runPython(pythonCode);
+
+        document.getElementById("output").innerText = `${description}\n${result}`;
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ Error: " + err;
+      }
+    }
+
+    pyodideReady
+      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+  </script>
+</body>
+</html>
