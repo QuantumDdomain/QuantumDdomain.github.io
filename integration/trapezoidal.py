@@ -16,5 +16,5 @@ def trapezoidal_rule(X_0, X_N, N, expr):
         x_next = x_i + h
         total += (fn(x_i) + fn(x_next)) * h / 2
     result = sp.N(total)  # Convert to float at the end
-    return result
+    return round(result,5)
 

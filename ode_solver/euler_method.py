@@ -29,4 +29,4 @@ def euler_method(fx, x_0, y_0, X, h):
         x_i += h
 
     # Return the final value of y
-    return y_i
+    return round(y_i,5)

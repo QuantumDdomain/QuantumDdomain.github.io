@@ -10,7 +10,7 @@ def gaussian_quadrature_1_weighting_factor(a, b, expr):
     W = 1
     X = 1 / 2
     sum = W * fn(a + X * (b - a))
-    return (b - a) * sp.N(sum)
+    return round((b - a) * sp.N(sum),5)
 
 def gaussian_quadrature_2_weighting_factor(a, b, expr):
     x = sp.symbols('x')
@@ -23,7 +23,7 @@ def gaussian_quadrature_2_weighting_factor(a, b, expr):
     sum = 0
     for i in range(2):
         sum += W[i] * fn(a + X[i] * (b - a))
-    return (b - a) * sp.N(sum)
+    return round((b - a) * sp.N(sum),5)
 
 def gaussian_quadrature_3_weighting_factor(a, b, expr):
     x = sp.symbols('x')
@@ -36,4 +36,4 @@ def gaussian_quadrature_3_weighting_factor(a, b, expr):
     sum = 0
     for i in range(3):
         sum += W[i] * fn(a + X[i] * (b - a))
-    return (b - a) * sp.N(sum)
+    return round((b - a) * sp.N(sum),5)

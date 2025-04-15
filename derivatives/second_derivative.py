@@ -9,4 +9,4 @@ def calculate_second_derivative(expr, xval, hval):
 
     # 5-Point Formula for second derivative
     second_derivative = (func.subs(x, xval + hval) - 2*func.subs(x, xval) + func.subs(x, xval - hval)) / (hval**2)
-    return second_derivative
+    return round(second_derivative,5)

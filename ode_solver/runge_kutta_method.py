@@ -54,4 +54,4 @@ def runge_kutta_combined(fx, x_0, y_0, X, h, method_order=2):
         x_i += h
 
     # Return the final value of y after all iterations
-    return y_i
+    return round(y_i,5)

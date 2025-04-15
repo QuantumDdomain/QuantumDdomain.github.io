@@ -12,4 +12,4 @@ def richardson_extrapolation(expr_str, x, r, h):
     def D_r(fn, x, r, h):
         return (fn(x + r*h) - fn(x - r*h)) / (2*r*h)
 
-    return (D_r(f, x, r, h) - r**2 * D_r(f, x, 1, h)) / (1 - r**2)
+    return round((D_r(f, x, r, h) - r**2 * D_r(f, x, 1, h)) / (1 - r**2),5)

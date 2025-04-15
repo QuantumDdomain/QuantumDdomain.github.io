@@ -31,4 +31,3 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
         iterations += 1
 
     raise ValueError("Method did not converge.")
-

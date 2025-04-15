@@ -14,4 +14,4 @@ def calculate_first_derivative(expr, xval, hval):
     derivative = (-func.subs(x, xval + 2*hval) + 8*func.subs(x, xval + hval) -
                   8*func.subs(x, xval - hval) + func.subs(x, xval - 2*hval)) / (12*hval)
 
-    return derivative
+    return round(derivative,5)

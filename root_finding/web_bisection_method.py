@@ -21,4 +21,4 @@ def bisection_method(expr_str, a, b, tol=1e-6):
         iterations += 1
         if iterations > 1000:
             raise ValueError("The method did not converge in 1000 iterations.")
-    return (a + b) / 2, iterations
+    return round((a + b) / 2,5), iterations
