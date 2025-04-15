@@ -3,7 +3,7 @@ import sympy as sp
 def evaluate_function(expr_str, x_val):
     x = sp.symbols('x')
     expr = sp.sympify(expr_str)
-    return float(expr.subs(x, x_val))
+    return sp.N(expr.subs(x, x_val))  # Keeps complex parts
 
 def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
     x = sp.symbols('x')
@@ -12,8 +12,8 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
 
     iterations = 0
     while iterations < max_iter:
-        f_x0 = float(expr.subs(x, x0))
-        f_prime_x0 = float(derivative_expr.subs(x, x0))
+        f_x0 = sp.N(expr.subs(x, x0))
+        f_prime_x0 = sp.N(derivative_expr.subs(x, x0))
 
         if f_prime_x0 == 0:
             raise ZeroDivisionError("Derivative is zero. No solution found.")
