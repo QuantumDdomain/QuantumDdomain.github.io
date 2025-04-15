@@ -7,7 +7,7 @@ def simpsonI_rule(X_0, X_N, N, expr):
     x = sp.symbols('x')
     
     # Convert the input expression into a sympy function
-    fn = sp.lambdify(x, expr, "math")
+    fn = sp.lambdify(x, expr, "sympy")
     
     h = (X_N - X_0) / N
     sum = 0
@@ -16,4 +16,4 @@ def simpsonI_rule(X_0, X_N, N, expr):
         x_2i_plus_1 = X_0 + (2 * i + 1) * h
         x_2i_plus_2 = X_0 + (2 * i + 2) * h
         sum += h * (fn(x_2i) + 4 * fn(x_2i_plus_1) + fn(x_2i_plus_2)) / 3
-    return sum
+    return sp.N(sum)

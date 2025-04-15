@@ -3,18 +3,18 @@ import math
 
 def gaussian_quadrature_1_weighting_factor(a, b, expr):
     x = sp.symbols('x')
-    fn = sp.lambdify(x, expr, "math")
+    fn = sp.lambdify(x, expr, "sympy")
     a = sp.sympify(a)
     b = sp.sympify(b)
     
     W = 1
     X = 1 / 2
     sum = W * fn(a + X * (b - a))
-    return (b - a) * sum
+    return (b - a) * sp.N(sum)
 
 def gaussian_quadrature_2_weighting_factor(a, b, expr):
     x = sp.symbols('x')
-    fn = sp.lambdify(x, expr, "math")
+    fn = sp.lambdify(x, expr, "sympy")
     a = sp.sympify(a)
     b = sp.sympify(b)
     
@@ -23,11 +23,11 @@ def gaussian_quadrature_2_weighting_factor(a, b, expr):
     sum = 0
     for i in range(2):
         sum += W[i] * fn(a + X[i] * (b - a))
-    return (b - a) * sum
+    return (b - a) * sp.N(sum)
 
 def gaussian_quadrature_3_weighting_factor(a, b, expr):
     x = sp.symbols('x')
-    fn = sp.lambdify(x, expr, "math")
+    fn = sp.lambdify(x, expr, "sympy")
     a = sp.sympify(a)
     b = sp.sympify(b)
     
@@ -36,4 +36,4 @@ def gaussian_quadrature_3_weighting_factor(a, b, expr):
     sum = 0
     for i in range(3):
         sum += W[i] * fn(a + X[i] * (b - a))
-    return (b - a) * sum
+    return (b - a) * sp.N(sum)
