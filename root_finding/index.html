@@ -93,7 +93,11 @@
   </div>
 
   <script>
-    let pyodideReadyPromise = loadPyodide();
+    let pyodideReadyPromise = (async () => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage("sympy");
+      return pyodide;
+    })();
 
     async function loadPyodideAndRun() {
       const pyodide = await pyodideReadyPromise;
