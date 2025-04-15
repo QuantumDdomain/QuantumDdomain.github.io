@@ -6,6 +6,8 @@ def evaluate_function(expr_str, x_val):
     return float(expr.subs(x, x_val))
 
 def bisection_method(expr_str, a, b, tol=1e-6):
+    a = sp.sympify(a)
+    b = sp.sympify(b)
     iterations = 0
     while abs((b - a) / b) > tol:
         c = (a + b) / 2

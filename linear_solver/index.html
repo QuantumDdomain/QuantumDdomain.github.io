@@ -45,15 +45,6 @@
       border-radius: 8px;
       white-space: pre-line;
     }
-    .view-script {
-      text-align: center;
-      margin-top: 15px;
-    }
-    .view-script a {
-      text-decoration: none;
-      color: #2980b9;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -74,7 +65,6 @@
     <button onclick="solveSystem()">Solve</button>
 
     <div id="output">Loading Pyodide...</div>
-
   </div>
 
   <script>
@@ -91,11 +81,9 @@
       const vectorB = document.getElementById("vectorB").value;
 
       try {
-        // Load and execute external Python file
         const script = await (await fetch("web_linear_solver.py")).text();
         pyodide.runPython(script);
 
-        // Run the symbolic-safe parsing and call function
         pyodide.runPython(`
 import sympy as sp
 
@@ -105,13 +93,17 @@ raw_vector = """${vectorB}"""
 A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n')]
 B = [sp.sympify(val) for val in raw_vector.strip().split()]
 
+if len(A) != ${n} or any(len(row) != ${n} for row in A) or len(B) != ${n}:
+    raise ValueError("Matrix dimensions do not match the number of equations.")
+
 result = gauss_jordan_elimination(A, B)
         `);
 
         const result = pyodide.globals.get("result").toJs();
         document.getElementById("output").innerText =
-          "✅ Solution:\n" +
-          result.map((val, i) => `x${i + 1} = ${val.toFixed(6)}`).join("\n");
+          "✅ Solution using Gauss-Jordan Elimination:\n" +
+          result.map((val, i) => `x${i + 1} = ${parseFloat(val).toFixed(6)}`).join("\n");
+
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }

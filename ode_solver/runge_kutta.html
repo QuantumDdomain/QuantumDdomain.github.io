@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color: #f7f7f7;
       padding: 20px;
     }
     .container {
@@ -55,19 +55,19 @@
     <input type="text" id="expr" value="x + y" />
 
     <label for="xval">Initial x (x₀):</label>
-    <input type="text" id="xval" value="0" step="any" />
+    <input type="number" id="xval" value="0" step="any" />
 
     <label for="yval">Initial y (y₀):</label>
-    <input type="text" id="yval" value="1" step="any" />
+    <input type="number" id="yval" value="1" step="any" />
 
     <label for="Xval">Final x (X):</label>
-    <input type="text" id="Xval" value="10" step="any" />
+    <input type="number" id="Xval" value="10" step="any" />
 
     <label for="hval">Step size h:</label>
-    <input type="text" id="hval" value="0.1" step="any" />
+    <input type="number" id="hval" value="0.1" step="any" />
 
     <label for="method_order">Runge-Kutta Method Order (2, 3, 4):</label>
-    <input type="number" id="method_order" value="4" step="any" />
+    <input type="number" id="method_order" value="4" step="1" min="2" max="4" />
 
     <button onclick="calculate()">Calculate</button>
 
@@ -90,16 +90,15 @@
       const h = document.getElementById("hval").value;
       const method_order = parseInt(document.getElementById("method_order").value);
 
-      let scriptFile = "runge_kutta_method.py";
-      let pythonCode = `runge_kutta_combined("${expr}", "${x0}", "${y0}", "${X}", "${h}", ${method_order})`;
-      let description = "Runge-Kutta Method Result:";
+      const scriptFile = "runge_kutta_method.py";
+      const pythonCode = `runge_kutta_combined("${expr}", "${x0}", "${y0}", "${X}", "${h}", ${method_order})`;
 
       try {
         const script = await (await fetch(scriptFile)).text();
         pyodide.runPython(script);
         const result = pyodide.runPython(pythonCode);
 
-        document.getElementById("output").innerText = `${description}\n${result}`;
+        document.getElementById("output").innerText = "✅ Runge-Kutta Method Result:\n" + result;
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }

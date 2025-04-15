@@ -45,6 +45,11 @@
       border-radius: 8px;
       white-space: pre-line;
     }
+    .warning {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -60,9 +65,8 @@
     <label for="b">Upper bound (b):</label>
     <input type="text" id="b" value="1" step="any" />
 
-    <!-- Subinterval input with Simpson's rule note -->
     <div id="nContainer">
-      <div id="simpsonNote" style="display: none; color: #c0392b; font-weight: bolder;">
+      <div id="simpsonNote" class="warning" style="display: none;">
         ⚠️ Simpson's Rule requires an even number of subintervals (n)
       </div>
       <label for="n">Number of subintervals (n):</label>
@@ -103,14 +107,9 @@
       const nContainer = document.getElementById("nContainer");
       const simpsonNote = document.getElementById("simpsonNote");
 
-      if (methodType === "gaussian") {
-        gaussianMethods.style.display = "block";
-        nContainer.style.display = "none";
-      } else {
-        gaussianMethods.style.display = "none";
-        nContainer.style.display = "block";
-        simpsonNote.style.display = (methodType === "simpson") ? "block" : "none";
-      }
+      gaussianMethods.style.display = methodType === "gaussian" ? "block" : "none";
+      nContainer.style.display = methodType !== "gaussian" ? "block" : "none";
+      simpsonNote.style.display = methodType === "simpson" ? "block" : "none";
     }
 
     async function calculate() {
@@ -130,20 +129,24 @@
         if (methodType === "trapezoidal") {
           scriptFile = "trapezoidal.py";
           description = "✅ Integral is calculated using Trapezoidal Rule:";
-          pythonCode = `trapezoidal_rule("${a}", "${b}", ${n}, "${expr}")`;
+          pythonCode = `trapezoidal_rule(${repr(a)}, ${repr(b)}, ${n}, ${repr(expr)})`;
         } else if (methodType === "simpson") {
+          if (n % 2 !== 0) {
+            document.getElementById("output").innerText = "❌ Simpson's Rule requires even number of subintervals (n). Please enter even n.";
+            return;
+          }
           scriptFile = "simpson.py";
           description = "✅ Integral is calculated using Simpson's 1/3 Rule:";
-          pythonCode = `simpsonI_rule("${a}", "${b}", ${n}, "${expr}")`;
+          pythonCode = `simpsonI_rule(${repr(a)}, ${repr(b)}, ${n}, ${repr(expr)})`;
         } else if (methodType === "gaussian") {
           scriptFile = "gaussian.py";
           description = "✅ Integral is calculated using Gaussian Quadrature:";
           if (gaussianMethod === "1") {
-            pythonCode = `gaussian_quadrature_1_weighting_factor("${a}", "${b}", "${expr}")`;
+            pythonCode = `gaussian_quadrature_1_weighting_factor(${repr(a)}, ${repr(b)}, ${repr(expr)})`;
           } else if (gaussianMethod === "2") {
-            pythonCode = `gaussian_quadrature_2_weighting_factor("${a}", "${b}", "${expr}")`;
+            pythonCode = `gaussian_quadrature_2_weighting_factor(${repr(a)}, ${repr(b)}, ${repr(expr)})`;
           } else {
-            pythonCode = `gaussian_quadrature_3_weighting_factor("${a}", "${b}", "${expr}")`;
+            pythonCode = `gaussian_quadrature_3_weighting_factor(${repr(a)}, ${repr(b)}, ${repr(expr)})`;
           }
         }
 
@@ -155,6 +158,10 @@
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }
+    }
+
+    function repr(str) {
+      return JSON.stringify(str);
     }
 
     pyodideReady

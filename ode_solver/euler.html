@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color: #f7f7f7;
       padding: 20px;
     }
     .container {
@@ -55,16 +55,16 @@
     <input type="text" id="expr" value="x + y" />
 
     <label for="xval">Initial x (x₀):</label>
-    <input type="text" id="xval" value="0" step="any" />
+    <input type="number" id="xval" value="0" step="any" />
 
     <label for="yval">Initial y (y₀):</label>
-    <input type="text" id="yval" value="1" step="any" />
+    <input type="number" id="yval" value="1" step="any" />
 
     <label for="Xval">Final x (X):</label>
-    <input type="text" id="Xval" value="10" step="any" />
+    <input type="number" id="Xval" value="10" step="any" />
 
     <label for="hval">Step size h:</label>
-    <input type="text" id="hval" value="0.1" step="any" />
+    <input type="number" id="hval" value="0.1" step="any" />
 
     <button onclick="calculate()">Calculate</button>
 
@@ -86,16 +86,15 @@
       const X = document.getElementById("Xval").value;
       const h = document.getElementById("hval").value;
 
-      let scriptFile = "euler_method.py";
-      let pythonCode = `euler_method("${expr}", "${x0}", "${y0}", "${X}", "${h}")`;
-      let description = "Euler Method Result:";
+      const scriptFile = "euler_method.py";
+      const pythonCode = `euler_method("${expr}", "${x0}", "${y0}", "${X}", "${h}")`;
 
       try {
         const script = await (await fetch(scriptFile)).text();
         pyodide.runPython(script);
         const result = pyodide.runPython(pythonCode);
 
-        document.getElementById("output").innerText = `${description}\n${result}`;
+        document.getElementById("output").innerText = "✅ Euler Method Result:\n" + result;
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }

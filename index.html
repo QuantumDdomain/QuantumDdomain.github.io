@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Numerical Methods</title>
   <style>
     body {
@@ -76,9 +77,43 @@
       font-size: 14px;
       color: #7f8c8d;
     }
+
+    /* Media query for smaller screens */
+    @media screen and (max-width: 768px) {
+      h1 {
+        font-size: 28px;
+      }
+      .section-link {
+        font-size: 16px;
+      }
+    }
+
+    /* Loading screen */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #loadingScreen div {
+      font-size: 20px;
+      color: #3498db;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div>Loading...</div>
+  </div>
+
   <div class="container">
     <h1>Welcome To Numerical Methods</h1>
 
@@ -93,5 +128,11 @@
       <p>&copy; 2025 Numerical Methods | Designed by Braja Gopal Das</p>
     </div>
   </div>
+
+  <script>
+    window.onload = function() {
+      document.getElementById("loadingScreen").style.display = "none";
+    };
+  </script>
 </body>
 </html>
