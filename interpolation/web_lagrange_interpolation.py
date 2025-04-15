@@ -1,44 +1,65 @@
-import numpy as np
-import matplotlib.pyplot as plt
+# web_lagrange_interpolation.py
 
-def lagrange_interpolation(x_points, y_points, x):
-    n = len(x_points)
-    L = np.zeros(n)
+import numpy as np
+import sympy as sp
+import matplotlib.pyplot as plt
+import io
+import base64
+
+def lagrange_interpolation_symbolic(A, B):
+    n = len(A)
+    x = sp.Symbol('x')
+    P = 0
+
     for i in range(n):
-        prd = 1 
+        term = 1
         for j in range(n):
             if i != j:
-                prd *= (x - x_points[j]) / (x_points[i] - x_points[j])
-        L[i] = prd
-    
-    y = sum(y_points[i] * L[i] for i in range(n))
-    return y
+                term *= (x - A[j]) / (A[i] - A[j])
+        P += B[i] * term
 
-def run_lagrange(x_str, y_str, xmin, xmax, show_point=None):
-    # Convert input strings to arrays
-    x_points = np.array([float(val.strip()) for val in x_str.split(',')])
-    y_points = np.array([float(val.strip()) for val in y_str.split(',')])
-    
-    # Generate plot values
-    x_vals = np.linspace(xmin, xmax, 500)
-    y_vals = [lagrange_interpolation(x_points, y_points, x) for x in x_vals]
-    
-    # Plotting
-    plt.figure(figsize=(6, 4))
-    plt.plot(x_vals, y_vals, label="Lagrange Interpolation")
-    plt.scatter(x_points, y_points, color='red', label="Given Points")
-    
-    result_str = ""
-    if show_point is not None:
-        interp_value = lagrange_interpolation(x_points, y_points, show_point)
-        plt.scatter([show_point], [interp_value], color='green', label=f"Interpolated: {interp_value:.4f}")
-        result_str = f"Interpolated value at x = {show_point}: y = {interp_value:.4f}"
-    
+    return sp.simplify(P)
+
+def main():
+    import js # type: ignore
+    x_input = js.document.getElementById("x_values").value
+    y_input = js.document.getElementById("y_values").value
+
+    try:
+        A = np.array([float(val) for val in x_input.split(",")])
+        B = np.array([float(val) for val in y_input.split(",")])
+        assert len(A) == len(B)
+    except:
+        js.alert("Please enter valid comma-separated numeric values of equal length.")
+        return
+
+    polynomial = lagrange_interpolation_symbolic(A, B)
+
+    # Evaluate at midpoint
+    x_val = (A[0] + A[-1]) / 2
+    y_val = polynomial.subs('x', x_val)
+
+    # Plot
+    f_numeric = sp.lambdify('x', polynomial, modules=['numpy'])
+    x_numeric = np.linspace(A[0], A[-1], 400)
+    y_numeric = f_numeric(x_numeric)
+
+    plt.clf()
+    plt.plot(x_numeric, y_numeric, label=f'P(x): {sp.latex(polynomial)}')
+    plt.plot(x_val, y_val, 'ro', label=f'P({x_val:.2f}) = {y_val:.4f}')
+    plt.title("Lagrange Interpolation")
     plt.xlabel("x")
-    plt.ylabel("y")
-    plt.legend()
+    plt.ylabel("P(x)")
     plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    plt.legend(fontsize=8)
     
-    return result_str
+    # Save to buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode("ascii")
+
+    js.document.getElementById("result").innerHTML = f"""
+        <p><strong>Interpolated Polynomial:</strong><br>{sp.latex(polynomial)}</p>
+        <img src="data:image/png;base64,{img_base64}" />
+    """

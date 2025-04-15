@@ -2,100 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Spline Interpolation</title>
+  <title>Spline Interpolation Plot</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      font-family: sans-serif;
+      background: #f0f0f0;
       padding: 20px;
     }
+
     .container {
       max-width: 700px;
       margin: auto;
-      background: #fff;
-      padding: 30px;
+      background: white;
+      padding: 25px;
       border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
-    textarea, input, button, select {
+
+    input, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
       font-size: 16px;
-      border-radius: 6px;
+      border-radius: 5px;
       border: 1px solid #ccc;
     }
+
     button {
       background-color: #3498db;
       color: white;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #2980b9;
     }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
+
     #output {
       margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
-      border-radius: 8px;
-      white-space: pre-line;
+      text-align: center;
     }
-    .warning {
-      color: #e74c3c;
-      font-weight: bold;
-      margin-top: 10px;
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Spline Interpolation</h1>
+    <h2>Spline Interpolation Plotter</h2>
 
-    <label for="xValues">Enter x values (comma separated):</label>
-    <input type="text" id="xValues" value="0, 1, 2, 3" />
+    <label for="xValues">X values (comma separated):</label>
+    <input type="text" id="xValues" value="0,1,2,3" />
 
-    <label for="yValues">Enter y values (comma separated):</label>
-    <input type="text" id="yValues" value="1, 2, 33, 244" />
+    <label for="yValues">Y values (comma separated):</label>
+    <input type="text" id="yValues" value="1,2,33,244" />
 
-    <label for="x">Enter x value to interpolate:</label>
-    <input type="text" id="x" value="2" />
-
-    <button onclick="calculateSpline()">Calculate Spline Interpolation</button>
+    <button onclick="runSpline()">Generate Spline Plot</button>
 
     <div id="output">Loading Pyodide...</div>
+    <div id="plot-area"></div>
   </div>
 
   <script>
     let pyodideReady = (async () => {
-      const pyodide = await loadPyodide();
-      await pyodide.loadPackage("numpy");
-      await pyodide.loadPackage("sympy");
-      await pyodide.loadPackage("matplotlib");  // Add this line
+      let pyodide = await loadPyodide();
+      await pyodide.loadPackage(["numpy", "matplotlib"]);
       return pyodide;
     })();
 
-    async function calculateSpline() {
+    async function runSpline() {
       const pyodide = await pyodideReady;
-      const xValues = document.getElementById("xValues").value.split(',').map(Number);
-      const yValues = document.getElementById("yValues").value.split(',').map(Number);
-      const x = document.getElementById("x").value;
+      const xRaw = document.getElementById("xValues").value;
+      const yRaw = document.getElementById("yValues").value;
 
-      const script = await fetch('web_spline_interpolation.py').then(res => res.text());
-      pyodide.runPython(script);
+      const xArray = xRaw.split(',').map(Number);
+      const yArray = yRaw.split(',').map(Number);
 
-      const result = pyodide.runPython(`spline_interpolation(${JSON.stringify(xValues)}, ${JSON.stringify(yValues)}, ${x}, ${xValues.length - 1})`);
+      if (xArray.length !== yArray.length) {
+        document.getElementById("output").innerText = "❌ X and Y arrays must be the same length.";
+        return;
+      }
 
-      document.getElementById("output").innerText = `Spline Interpolation Result: ${result}`;
+      const pyCode = await fetch('web_spline_interpolation.py').then(res => res.text());
+
+      pyodide.globals.set("A", pyodide.toPy(xArray));
+      pyodide.globals.set("B", pyodide.toPy(yArray));
+
+      pyodide.runPython(pyCode + `
+import matplotlib.pyplot as plt
+from pyodide.ffi import to_js
+import io
+import base64
+
+plt.figure(figsize=(8,5))
+for spline in get_piecewise_spline_functions(A, B):
+    x0, x1 = spline["interval"]
+    x_segment = np.linspace(x0, x1, 200)
+    a, b, c, d = spline["a"], spline["b"], spline["c"], spline["d"]
+    y_segment = a + b*(x_segment - x0) + c*(x_segment - x0)**2 + d*(x_segment - x0)**3
+    plt.plot(x_segment, y_segment, label = f"S(x) on [{x0}, {x1}]: {a:.2f} + {b:.2f}(x-{x0}) + {c:.2f}(x-{x0})² + {d:.2f}(x-{x0})³")
+
+plt.plot(A, B, 'ro', label='Data Points')
+plt.title("Natural Cubic Spline")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.grid(True)
+plt.legend(fontsize=8)
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
+img_data = base64.b64encode(buf.read()).decode('utf-8')
+`);
+      const imgData = pyodide.runPython("img_data");
+      document.getElementById("output").innerText = "✅ Plot generated!";
+      document.getElementById("plot-area").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Spline Plot"/>`;
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").innerText = "Pyodide loaded. Ready to run!")
+      .catch(err => document.getElementById("output").innerText = "❌ Failed to load Pyodide.");
   </script>
 </body>
 </html>
