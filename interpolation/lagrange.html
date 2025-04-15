@@ -70,23 +70,24 @@
       const pyodide = await loadPyodide();
       await pyodide.loadPackage("numpy");
       await pyodide.loadPackage("sympy");
+      await pyodide.loadPackage("matplotlib");  // Add this line to load matplotlib
       return pyodide;
     })();
-
+  
     async function calculateLagrange() {
       const pyodide = await pyodideReady;
       const xValues = document.getElementById("xValues").value.split(',').map(Number);
       const yValues = document.getElementById("yValues").value.split(',').map(Number);
       const x = document.getElementById("x").value;
-
+  
       const script = await fetch('web_lagrange_interpolation.py').then(res => res.text());
       pyodide.runPython(script);
-
-      const result = pyodide.runPython(`lagrange_interpolation(${JSON.stringify(xValues)}, ${JSON.stringify(yValues)}, ${x}, ${xValues.length - 1})`);
-
+  
+      const result = pyodide.runPython(`lagrange_interpolation(${JSON.stringify(xValues)}, ${JSON.stringify(yValues)}, ${x})`);
+  
       document.getElementById("output").innerText = `Lagrange Interpolation Result: ${result}`;
     }
-
+  
     pyodideReady
       .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
       .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
