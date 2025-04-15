@@ -1,6 +1,8 @@
 import sympy as sp
 
 def simpsonI_rule(X_0, X_N, N, expr):
+    X_0 = sp.sympify(X_0)
+    X_N = sp.sympify(X_N)
     # Define the symbolic variable
     x = sp.symbols('x')
     

@@ -4,6 +4,8 @@ import math
 def gaussian_quadrature_1_weighting_factor(a, b, expr):
     x = sp.symbols('x')
     fn = sp.lambdify(x, expr, "math")
+    a = sp.sympify(a)
+    b = sp.sympify(b)
     
     W = 1
     X = 1 / 2
@@ -13,6 +15,8 @@ def gaussian_quadrature_1_weighting_factor(a, b, expr):
 def gaussian_quadrature_2_weighting_factor(a, b, expr):
     x = sp.symbols('x')
     fn = sp.lambdify(x, expr, "math")
+    a = sp.sympify(a)
+    b = sp.sympify(b)
     
     W = [1/2, 1/2]
     X = [1/2 + math.sqrt(3) / 6, 1/2 - math.sqrt(3) / 6]
@@ -24,6 +28,8 @@ def gaussian_quadrature_2_weighting_factor(a, b, expr):
 def gaussian_quadrature_3_weighting_factor(a, b, expr):
     x = sp.symbols('x')
     fn = sp.lambdify(x, expr, "math")
+    a = sp.sympify(a)
+    b = sp.sympify(b)
     
     W = [5/18, 5/18, 8/18]
     X = [1/2 + math.sqrt(15) / 10, 1/2 - math.sqrt(15) / 10, 1/2]

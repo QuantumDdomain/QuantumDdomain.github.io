@@ -3,12 +3,16 @@ import sympy as sp
 def evaluate_function(expr_str, x_val):
     x = sp.symbols('x')
     expr = sp.sympify(expr_str)
+    x_val = sp.sympify(x_val)
     return sp.N(expr.subs(x, x_val))  # Keeps complex parts
 
 def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
     x = sp.symbols('x')
     expr = sp.sympify(expr_str)
     derivative_expr = sp.diff(expr, x)
+
+    # ✅ Convert x0 to symbolic (if it's passed as a string like "1 + I")
+    x0 = sp.sympify(x0)
 
     iterations = 0
     while iterations < max_iter:
@@ -27,3 +31,4 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
         iterations += 1
 
     raise ValueError("Method did not converge.")
+
