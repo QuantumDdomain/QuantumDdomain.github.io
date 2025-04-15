@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lagrange Interpolation</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lagrange Interpolation</h1>
+
+    <label for="xValues">Enter x-values (comma-separated):</label>
+    <input type="text" id="xValues" value="1.2, 1.3, 1.4, 1.5" />
+
+    <label for="yValues">Enter y-values (comma-separated):</label>
+    <input type="text" id="yValues" value="1.063, 1.091, 1.119, 1.145" />
+
+    <label for="x">Value of x to interpolate:</label>
+    <input type="number" id="x" value="2" />
+
+    <button onclick="calculateLagrange()">Calculate Lagrange</button>
+
+    <div id="output">Loading Pyodide...</div>
+  </div>
+
+  <script>
+    let pyodideReady = (async () => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage("numpy");
+      await pyodide.loadPackage("sympy");
+      return pyodide;
+    })();
+
+    async function calculateLagrange() {
+      const pyodide = await pyodideReady;
+      const xValues = document.getElementById("xValues").value.split(',').map(Number);
+      const yValues = document.getElementById("yValues").value.split(',').map(Number);
+      const x = document.getElementById("x").value;
+
+      const script = await fetch('web_lagrange_interpolation.py').then(res => res.text());
+      pyodide.runPython(script);
+
+      const result = pyodide.runPython(`lagrange_interpolation(${JSON.stringify(xValues)}, ${JSON.stringify(yValues)}, ${x}, ${xValues.length - 1})`);
+
+      document.getElementById("output").innerText = `Lagrange Interpolation Result: ${result}`;
+    }
+
+    pyodideReady
+      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+  </script>
+</body>
+</html>
