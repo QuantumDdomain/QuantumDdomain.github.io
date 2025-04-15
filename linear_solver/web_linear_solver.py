@@ -1,6 +1,12 @@
 import numpy as np
+import sympy as sp
 
 def gauss_jordan_elimination(A, B):
+    # Evaluate symbolic input to float using sympy
+    A = [[float(sp.sympify(val).evalf()) for val in row] for row in A]
+    B = [float(sp.sympify(val).evalf()) for val in B]
+    A = np.array(A, dtype=float)
+    B = np.array(B, dtype=float)
     n = len(B)
     
     for i in range(n):
@@ -26,4 +32,4 @@ def gauss_jordan_elimination(A, B):
                     A[k][j] -= factor * A[i][j]
                 B[k] -= factor * B[i]
 
-    return B
+    return B.tolist()

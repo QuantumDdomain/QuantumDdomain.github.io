@@ -1,6 +1,10 @@
 from sympy import symbols, sympify, lambdify
 
 def runge_kutta_combined(fx, x_0, y_0, X, h, method_order=2):
+    x_0 = sympify(x_0)  # Ensure x_0 is treated as a sympy expression
+    y_0 = sympify(y_0)  # Ensure y_0 is treated as a sympy expression
+    h  = sympify(h)    # Ensure h is treated as a sympy expression
+    X = sympify(X)  # Ensure X is treated as a sympy expression
     # Define symbols for x and y
     x, y = symbols('x y')
 

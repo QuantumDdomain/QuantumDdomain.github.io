@@ -2,6 +2,9 @@ import math
 from sympy import sympify, lambdify, symbols
 
 def richardson_extrapolation(expr_str, x, r, h):
+    x = sympify(x)
+    h = sympify(h)
+    r = sympify(r)
     x_sym = symbols('x')
     expr = sympify(expr_str)
     f = lambdify(x_sym, expr, 'math')

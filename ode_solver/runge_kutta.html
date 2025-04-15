@@ -55,16 +55,16 @@
     <input type="text" id="expr" value="x + y" />
 
     <label for="xval">Initial x (x₀):</label>
-    <input type="number" id="xval" value="0" step="any" />
+    <input type="text" id="xval" value="0" step="any" />
 
     <label for="yval">Initial y (y₀):</label>
-    <input type="number" id="yval" value="1" step="any" />
+    <input type="text" id="yval" value="1" step="any" />
 
     <label for="Xval">Final x (X):</label>
-    <input type="number" id="Xval" value="10" step="any" />
+    <input type="text" id="Xval" value="10" step="any" />
 
     <label for="hval">Step size h:</label>
-    <input type="number" id="hval" value="0.1" step="any" />
+    <input type="text" id="hval" value="0.1" step="any" />
 
     <label for="method_order">Runge-Kutta Method Order (2, 3, 4):</label>
     <input type="number" id="method_order" value="4" step="any" />
@@ -84,14 +84,14 @@
     async function calculate() {
       const pyodide = await pyodideReady;
       const expr = document.getElementById("expr").value;
-      const x0 = parseFloat(document.getElementById("xval").value);
-      const y0 = parseFloat(document.getElementById("yval").value);
-      const X = parseFloat(document.getElementById("Xval").value);
-      const h = parseFloat(document.getElementById("hval").value);
+      const x0 = document.getElementById("xval").value;
+      const y0 = document.getElementById("yval").value;
+      const X = document.getElementById("Xval").value;
+      const h = document.getElementById("hval").value;
       const method_order = parseInt(document.getElementById("method_order").value);
 
       let scriptFile = "runge_kutta_method.py";
-      let pythonCode = `runge_kutta_combined("${expr}", ${x0}, ${y0}, ${X}, ${h}, ${method_order})`;
+      let pythonCode = `runge_kutta_combined("${expr}", "${x0}", "${y0}", "${X}", "${h}", ${method_order})`;
       let description = "Runge-Kutta Method Result:";
 
       try {

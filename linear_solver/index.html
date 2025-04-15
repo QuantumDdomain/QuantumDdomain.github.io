@@ -45,6 +45,15 @@
       border-radius: 8px;
       white-space: pre-line;
     }
+    .view-script {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .view-script a {
+      text-decoration: none;
+      color: #2980b9;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -65,12 +74,13 @@
     <button onclick="solveSystem()">Solve</button>
 
     <div id="output">Loading Pyodide...</div>
+
   </div>
 
   <script>
     let pyodideReady = (async () => {
       const pyodide = await loadPyodide();
-      await pyodide.loadPackage("numpy");
+      await pyodide.loadPackage(["numpy", "sympy"]);
       return pyodide;
     })();
 
@@ -81,15 +91,19 @@
       const vectorB = document.getElementById("vectorB").value;
 
       try {
+        // Load and execute external Python file
         const script = await (await fetch("web_linear_solver.py")).text();
         pyodide.runPython(script);
 
+        // Run the symbolic-safe parsing and call function
         pyodide.runPython(`
-matrixA = """${matrixA}"""
-vectorB = """${vectorB}"""
-n = ${n}
-A = [[float(num) for num in row.split()] for row in matrixA.split('\\n')]
-B = [float(x) for x in vectorB.split()]
+import sympy as sp
+
+raw_matrix = """${matrixA}"""
+raw_vector = """${vectorB}"""
+
+A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n')]
+B = [sp.sympify(val) for val in raw_vector.strip().split()]
 
 result = gauss_jordan_elimination(A, B)
         `);

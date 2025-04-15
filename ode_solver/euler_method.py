@@ -1,6 +1,10 @@
 from sympy import symbols, lambdify, sympify
 
 def euler_method(fx, x_0, y_0, X, h):
+    x_0 = sympify(x_0)  # Ensure x_0 is treated as a sympy expression
+    y_0 = sympify(y_0)  # Ensure y_0 is treated as a sympy expression
+    h  = sympify(h)    # Ensure h is treated as a sympy expression
+    X = sympify(X)  # Ensure X is treated as a sympy expression
     # Define symbols
     x, y = symbols('x y')
 

@@ -1,6 +1,8 @@
 import sympy as sp
 
 def calculate_second_derivative(expr, xval, hval):
+    xval = sp.sympify(xval)
+    hval = sp.sympify(hval)
     # Use sympy to parse the expression
     x = sp.symbols('x')
     func = sp.sympify(expr)
