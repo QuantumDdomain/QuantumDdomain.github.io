@@ -70,8 +70,12 @@
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
-      await pyodide.loadPackage("numpy");
-      await pyodide.loadPackage("matplotlib");
+      await pyodide.loadPackage(["numpy"]);
+      await pyodide.loadPackage("micropip");
+      await pyodide.runPythonAsync(`
+        import micropip
+        await micropip.install("matplotlib")
+      `);
       return pyodide;
     })();
 
@@ -93,11 +97,12 @@
       pyodide.globals.set("A", pyodide.toPy(xArray));
       pyodide.globals.set("B", pyodide.toPy(yArray));
 
-      pyodide.runPython(pyCode + `
+      await pyodide.runPythonAsync(pyCode + `
 import matplotlib.pyplot as plt
 from pyodide.ffi import to_js
 import io
 import base64
+import numpy as np
 
 plt.figure(figsize=(8,5))
 for spline in get_piecewise_spline_functions(A, B):
@@ -117,14 +122,15 @@ buf = io.BytesIO()
 plt.savefig(buf, format='png')
 buf.seek(0)
 img_data = base64.b64encode(buf.read()).decode('utf-8')
-`);
-      const imgData = pyodide.runPython("img_data");
+      `);
+
+      const imgData = pyodide.globals.get("img_data");
       document.getElementById("output").innerText = "✅ Plot generated!";
       document.getElementById("plot-area").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Spline Plot"/>`;
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").innerText = "Pyodide loaded. Ready to run!")
+      .then(() => document.getElementById("output").innerText = "✅ Pyodide loaded. Ready to run!")
       .catch(err => document.getElementById("output").innerText = "❌ Failed to load Pyodide.");
   </script>
 </body>
