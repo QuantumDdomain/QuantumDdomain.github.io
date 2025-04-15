@@ -73,7 +73,9 @@
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "matplotlib", "sympy"]);
+      await pyodide.loadPackage(["numpy", "sympy"]);
+      await pyodide.loadPackage("matplotlib"); // must be loaded separately
+
       return pyodide;
     })();
 

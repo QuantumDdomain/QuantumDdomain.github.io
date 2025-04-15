@@ -70,7 +70,8 @@
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "matplotlib"]);
+      await pyodide.loadPackage("numpy");
+      await pyodide.loadPackage("matplotlib");
       return pyodide;
     })();
 
