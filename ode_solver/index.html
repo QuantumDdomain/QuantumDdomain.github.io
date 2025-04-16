@@ -53,8 +53,10 @@
     
     <label for="method">Choose Method:</label>
     <select id="method">
+      <option value="" disabled selected>-- Select a method --</option>
       <option value="euler">Euler Method</option>
       <option value="runge_kutta">Runge-Kutta Method</option>
+      <option value="plot">Runge-Kutta Plot</option>
     </select>
 
     <button onclick="redirect()">Proceed</button>
@@ -69,6 +71,10 @@
         window.location.href = "euler.html";
       } else if (method === "runge_kutta") {
         window.location.href = "runge_kutta.html";
+      } else if (method === "plot") {
+        window.location.href = "plot.html";
+      } else {
+        document.getElementById("output").innerText = "⚠️ Please select a method before proceeding.";
       }
     }
   </script>

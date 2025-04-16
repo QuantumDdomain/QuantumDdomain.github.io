@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Runge-Kutta Plot</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      font-size: 16px;
+    }
+    #status {
+      margin-bottom: 10px;
+      color: green;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Runge-Kutta Plot (Pyodide)</h2>
+    
+    <div id="status">Loading Pyodide...</div>
+
+    <label>dy/dx = f(x, y)</label>
+    <input id="fx" value="x + y" />
+
+    <label>Initial x₀:</label>
+    <input id="x0" value="0" />
+
+    <label>Initial y₀:</label>
+    <input id="y0" value="1" />
+
+    <label>Upper limit x:</label>
+    <input id="x" value="5" />
+
+    <label>Step size h:</label>
+    <input id="h" value="0.1" />
+
+    <button onclick="run()">Run and Plot</button>
+
+    <div id="result"></div>
+    <div id="plot"></div>
+  </div>
+
+  <script>
+    let pyodideReady = false;
+    let pyodide;
+
+    async function main() {
+      pyodide = await loadPyodide();
+      await pyodide.loadPackage([
+        "numpy", "sympy", "matplotlib"
+      ]);
+      document.getElementById("status").innerText = "Pyodide loaded ✅";
+      pyodideReady = true;
+    }
+
+    async function run() {
+      if (!pyodideReady) {
+        alert("Pyodide not ready yet. Please wait...");
+        return;
+      }
+
+      const fx = document.getElementById("fx").value;
+      const x0 = document.getElementById("x0").value;
+      const y0 = document.getElementById("y0").value;
+      const x = document.getElementById("x").value;
+      const h = document.getElementById("h").value;
+
+      // Python code block
+      const code = `
+import math
+import matplotlib.pyplot as plt
+
+def runge_kutta(fx, x_0, y_0, x, h):
+    # Convert inputs to proper types
+    x_0 = float(x_0)
+    y_0 = float(y_0)
+    x = float(x)
+    h = float(h)
+
+    # Define the function using eval to allow numeric calculations
+    f = lambda x, y: eval(fx)
+
+    # Initialize values
+    x_i = x_0
+    y_i = y_0
+    x_values = [x_i]
+    y_values = [y_i]
+    n = int((x - x_0) / h)
+
+    # Runge-Kutta iteration
+    for i in range(n):
+        k1 = h * f(x_i, y_i)
+        k2 = h * f(x_i + h / 2, y_i + k1 / 2)
+        k3 = h * f(x_i + h / 2, y_i + k2 / 2)
+        k4 = h * f(x_i + h, y_i + k3)
+        y_i += ((k1 + 2 * (k2 + k3) + k4) / 6)
+        x_i += h
+        x_values.append(x_i)
+        y_values.append(y_i)
+    
+    # Plot the results
+    plt.figure()
+    plt.plot(x_values, y_values, label='Runge-Kutta', color='purple')
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title("Runge-Kutta Plot")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig("plot.png")
+
+    return y_i  # Final y value
+
+# Inputs from JavaScript
+fx = """${fx}"""
+x_0 = """${x0}"""
+y_0 = """${y0}"""
+x = """${x}"""
+h = """${h}"""
+
+# Run the method and return result
+result = runge_kutta(fx, x_0, y_0, x, h)
+result
+`;
+
+      try {
+        // Ensure we await the Python code execution
+        const result = await pyodide.runPythonAsync(code);
+        document.getElementById("result").innerHTML = `<b>y(${x}) = ${result}</b>`;
+
+        // Retrieve and display the plot
+        const png = pyodide.FS.readFile("plot.png", { encoding: "binary" });
+        const blob = new Blob([png], { type: "image/png" });
+        const url = URL.createObjectURL(blob);
+        document.getElementById("plot").innerHTML = `<img src="${url}" width="100%" />`;
+      } catch (err) {
+        console.error("Error running Python:", err);
+        alert("An error occurred while running the Python code.");
+      }
+    }
+
+    main(); // Initialize Pyodide
+  </script>
+</body>
+</html>
