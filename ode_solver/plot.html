@@ -58,7 +58,10 @@
     <button onclick="run()">Run and Plot</button>
 
     <div id="result"></div>
-    <div id="plot"></div>
+    <div id="plot" style="overflow-x: auto; max-width: 100%; margin-top: 20px;">
+      <div id="plot-wrapper" style="min-width: 900px;"></div>
+    </div>
+    
   </div>
 
   <script>
@@ -152,7 +155,8 @@ result
         const png = pyodide.FS.readFile("plot.png", { encoding: "binary" });
         const blob = new Blob([png], { type: "image/png" });
         const url = URL.createObjectURL(blob);
-        document.getElementById("plot").innerHTML = `<img src="${url}" width="100%" />`;
+        document.getElementById("plot-wrapper").innerHTML = `<img src="${url}" style="width: 100%; max-width: none;" />`;
+
       } catch (err) {
         console.error("Error running Python:", err);
         alert("An error occurred while running the Python code.");
