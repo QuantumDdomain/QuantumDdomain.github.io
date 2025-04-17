@@ -81,25 +81,54 @@
       const vectorB = document.getElementById("vectorB").value;
 
       try {
+        // Fetch and run the Python script for solving the system
         const script = await (await fetch("web_linear_solver.py")).text();
         pyodide.runPython(script);
 
         pyodide.runPython(`
 import sympy as sp
 
+# Parsing input data
 raw_matrix = """${matrixA}"""
 raw_vector = """${vectorB}"""
 
+# Converting input into symbolic matrix and vector
 A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n')]
 B = [sp.sympify(val) for val in raw_vector.strip().split()]
 
+# Checking matrix dimensions and validity
 if len(A) != ${n} or any(len(row) != ${n} for row in A) or len(B) != ${n}:
     raise ValueError("Matrix dimensions do not match the number of equations.")
 
+# Solving the system using Gauss-Jordan Elimination
+def gauss_jordan_elimination(A, B):
+    A_aug = [row + [b] for row, b in zip(A, B)]  # Augmented matrix
+    n = len(A)
+
+    # Forward elimination
+    for i in range(n):
+        # Make the diagonal element 1
+        max_row = max(range(i, n), key=lambda r: abs(A_aug[r][i]))
+        A_aug[i], A_aug[max_row] = A_aug[max_row], A_aug[i]
+        pivot = A_aug[i][i]
+        A_aug[i] = [x / pivot for x in A_aug[i]]
+
+        # Eliminate the column entries
+        for j in range(n):
+            if j != i:
+                factor = A_aug[j][i]
+                A_aug[j] = [A_aug[j][k] - factor * A_aug[i][k] for k in range(n + 1)]
+
+    # Extracting the solutions
+    return [row[-1] for row in A_aug]
+
+# Solving the system and storing the result
 result = gauss_jordan_elimination(A, B)
         `);
 
         const result = pyodide.globals.get("result").toJs();
+
+        // Displaying the results
         document.getElementById("output").innerText =
           "✅ Solution using Gauss-Jordan Elimination:\n" +
           result.map((val, i) => `x${i + 1} = ${parseFloat(val).toFixed(6)}`).join("\n");

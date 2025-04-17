@@ -107,6 +107,7 @@ import io
 import base64
 import numpy as np
 
+# Assuming get_piecewise_spline_functions is defined in the fetched Python script.
 plt.figure(figsize=(8,5))
 for spline in get_piecewise_spline_functions(A, B):
     x0, x1 = spline["interval"]
@@ -121,6 +122,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.grid(True)
 plt.legend(fontsize=8)
+
 buf = io.BytesIO()
 plt.savefig(buf, format='png')
 buf.seek(0)
@@ -129,7 +131,7 @@ img_data = base64.b64encode(buf.read()).decode('utf-8')
 
       const imgData = pyodide.globals.get("img_data");
       document.getElementById("output").innerText = "✅ Plot generated!";
-      document.getElementById("plot-wrapper").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" style="width: 100%; max-width: none;" />`;
+      document.getElementById("plot-wrapper").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Spline Plot" style="width: 100%; max-width: none;" />`;
 
     }
 

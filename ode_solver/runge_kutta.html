@@ -90,15 +90,55 @@
       const h = document.getElementById("hval").value;
       const method_order = parseInt(document.getElementById("method_order").value);
 
-      const scriptFile = "runge_kutta_method.py";
-      const pythonCode = `runge_kutta_combined("${expr}", "${x0}", "${y0}", "${X}", "${h}", ${method_order})`;
+      // Runge-Kutta combined method
+      const pythonCode = `
+import numpy as np
+
+def runge_kutta_combined(fx, x_0, y_0, X, h, order):
+    # Define function f(x, y) using eval
+    f = lambda x, y: eval(fx)
+    
+    # Convert inputs
+    x_0 = float(x_0)
+    y_0 = float(y_0)
+    X = float(X)
+    h = float(h)
+    
+    x_values = [x_0]
+    y_values = [y_0]
+    
+    n = int((X - x_0) / h)
+    
+    for i in range(n):
+        k1 = h * f(x_0, y_0)
+        k2 = h * f(x_0 + 0.5 * h, y_0 + 0.5 * k1)
+        k3 = h * f(x_0 + 0.5 * h, y_0 + 0.5 * k2)
+        k4 = h * f(x_0 + h, y_0 + k3)
+        
+        # Runge-Kutta Method (4th order)
+        if order == 4:
+            y_0 = y_0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        # Runge-Kutta Method (2nd order)
+        elif order == 2:
+            y_0 = y_0 + (k1 + k2) / 2
+        # Runge-Kutta Method (3rd order)
+        elif order == 3:
+            y_0 = y_0 + (k1 + 3 * (k2 + k3)) / 4
+        
+        x_0 += h
+        x_values.append(x_0)
+        y_values.append(y_0)
+    
+    return x_values, y_values
+
+x_values, y_values = runge_kutta_combined("${expr}", "${x0}", "${y0}", "${X}", "${h}", ${method_order})
+x_values, y_values
+      `;
 
       try {
-        const script = await (await fetch(scriptFile)).text();
-        pyodide.runPython(script);
-        const result = pyodide.runPython(pythonCode);
-
-        document.getElementById("output").innerText = "✅ Runge-Kutta Method Result:\n" + result;
+        const result = await pyodide.runPythonAsync(pythonCode);
+        const [x_vals, y_vals] = result.split("\n");
+        document.getElementById("output").innerText = `Calculated values:\n x: ${x_vals}\n y: ${y_vals}`;
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }

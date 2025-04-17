@@ -10,6 +10,7 @@
       background-color: #f7f7f7;
       padding: 20px;
     }
+
     .container {
       max-width: 700px;
       margin: auto;
@@ -18,6 +19,7 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
+
     textarea, input, button, select {
       width: 100%;
       padding: 10px;
@@ -26,18 +28,22 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
     button {
       background-color: #3498db;
       color: white;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #2980b9;
     }
+
     h1 {
       text-align: center;
       color: #2c3e50;
     }
+
     #output {
       margin-top: 20px;
       padding: 15px;
@@ -72,34 +78,37 @@
   </div>
 
   <script>
+    // Load Pyodide and SymPy asynchronously
     let pyodideReady = (async () => {
       const pyodide = await loadPyodide();
       await pyodide.loadPackage("sympy");
       return pyodide;
     })();
 
+    // Function to handle calculation when button is clicked
     async function calculate() {
-      const pyodide = await pyodideReady;
+      const pyodide = await pyodideReady;  // Ensure Pyodide is loaded
       const expr = document.getElementById("expr").value;
       const x0 = document.getElementById("xval").value;
       const y0 = document.getElementById("yval").value;
       const X = document.getElementById("Xval").value;
       const h = document.getElementById("hval").value;
 
-      const scriptFile = "euler_method.py";
-      const pythonCode = `euler_method("${expr}", "${x0}", "${y0}", "${X}", "${h}")`;
+      const scriptFile = "euler_method.py";  // Path to Python script
+      const pythonCode = `euler_method("${expr}", ${x0}, ${y0}, ${X}, ${h})`;  // Python function call
 
       try {
-        const script = await (await fetch(scriptFile)).text();
-        pyodide.runPython(script);
-        const result = pyodide.runPython(pythonCode);
+        const script = await (await fetch(scriptFile)).text();  // Fetch script content
+        pyodide.runPython(script);  // Run the script
+        const result = pyodide.runPython(pythonCode);  // Run the calculation
 
-        document.getElementById("output").innerText = "✅ Euler Method Result:\n" + result;
+        document.getElementById("output").innerText = "✅ Euler Method Result:\n" + result;  // Display result
       } catch (err) {
-        document.getElementById("output").innerText = "❌ Error: " + err;
+        document.getElementById("output").innerText = "❌ Error: " + err;  // Handle error
       }
     }
 
+    // Initialize Pyodide and set status message
     pyodideReady
       .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
       .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
