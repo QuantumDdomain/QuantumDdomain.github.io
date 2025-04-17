@@ -49,6 +49,17 @@
       margin: 20px auto;
       border: 1px solid #ccc;
     }
+
+    label[for="showCoefficients"] {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    #showCoefficients {
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -61,13 +72,23 @@
     <label for="yValues">Y values (comma separated):</label>
     <input type="text" id="yValues" value="1,2,33,244" />
 
+    <label>
+      <input type="checkbox" id="showCoefficients" />
+      Show spline equations
+    </label>
+
     <button onclick="runSpline()">Generate Spline Plot</button>
 
     <div id="output">Loading...</div>
     <div id="plot-area" style="overflow-x: auto; max-width: 100%; padding-top: 20px;">
       <div id="plot-wrapper" style="min-width: 1000px;"></div>
     </div>
-    
+
+    <label for="xInterp">Enter X value to interpolate:</label>
+    <input type="text" id="xInterp" value="2.5" />
+    <button onclick="getInterpolatedValue()">Get Interpolated Value</button>
+
+    <div id="interp-output"></div>
   </div>
 
   <script>
@@ -86,6 +107,7 @@
       const pyodide = await pyodideReady;
       const xRaw = document.getElementById("xValues").value;
       const yRaw = document.getElementById("yValues").value;
+      const showCoefficients = document.getElementById("showCoefficients").checked;
 
       const xArray = xRaw.split(',').map(Number);
       const yArray = yRaw.split(',').map(Number);
@@ -107,14 +129,15 @@ import io
 import base64
 import numpy as np
 
-# Assuming get_piecewise_spline_functions is defined in the fetched Python script.
 plt.figure(figsize=(8,5))
-for spline in get_piecewise_spline_functions(A, B):
+splines = get_piecewise_spline_functions(A, B, ${showCoefficients})
+for spline in splines:
     x0, x1 = spline["interval"]
     x_segment = np.linspace(x0, x1, 200)
     a, b, c, d = spline["a"], spline["b"], spline["c"], spline["d"]
     y_segment = a + b*(x_segment - x0) + c*(x_segment - x0)**2 + d*(x_segment - x0)**3
-    plt.plot(x_segment, y_segment, label = f"S(x) on [{x0}, {x1}]: {a:.2f} + {b:.2f}(x-{x0}) + {c:.2f}(x-{x0})² + {d:.2f}(x-{x0})³")
+    label = spline.get("equation", f"S(x) on [{x0}, {x1}]")
+    plt.plot(x_segment, y_segment, label=label)
 
 plt.plot(A, B, 'ro', label='Data Points')
 plt.title("Natural Cubic Spline")
@@ -132,7 +155,48 @@ img_data = base64.b64encode(buf.read()).decode('utf-8')
       const imgData = pyodide.globals.get("img_data");
       document.getElementById("output").innerText = "✅ Plot generated!";
       document.getElementById("plot-wrapper").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Spline Plot" style="width: 100%; max-width: none;" />`;
+    }
 
+    async function getInterpolatedValue() {
+      const pyodide = await pyodideReady;
+      const xRaw = document.getElementById("xValues").value;
+      const yRaw = document.getElementById("yValues").value;
+      const xInterp = parseFloat(document.getElementById("xInterp").value);
+
+      const xArray = xRaw.split(',').map(Number);
+      const yArray = yRaw.split(',').map(Number);
+
+      if (xArray.length !== yArray.length) {
+        document.getElementById("interp-output").innerText = "❌ X and Y arrays must be the same length.";
+        return;
+      }
+
+      const pyCode = await fetch('web_spline_interpolation.py').then(res => res.text());
+
+      pyodide.globals.set("A", pyodide.toPy(xArray));
+      pyodide.globals.set("B", pyodide.toPy(yArray));
+
+      await pyodide.runPythonAsync(pyCode + `
+import numpy as np
+
+def get_value_for_x(x, splines):
+    for spline in splines:
+        x0, x1 = spline["interval"]
+        if x0 <= x <= x1:
+            a, b, c, d = spline["a"], spline["b"], spline["c"], spline["d"]
+            return a + b*(x - x0) + c*(x - x0)**2 + d*(x - x0)**3
+    return None
+
+splines = get_piecewise_spline_functions(A, B)
+interp_value = get_value_for_x(${xInterp}, splines)
+      `);
+
+      const interpValue = pyodide.globals.get("interp_value");
+      if (interpValue === null) {
+        document.getElementById("interp-output").innerText = "❌ No spline found for this x value.";
+      } else {
+        document.getElementById("interp-output").innerText = `✅ Interpolated value at x = ${xInterp} is: ${interpValue}`;
+      }
     }
 
     pyodideReady
