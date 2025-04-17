@@ -1,6 +1,6 @@
 import sympy as sp
 
-def fixed_point_method(equation_str, x0_str, tol=1e-6, max_iter=100):
+def fixed_point_method(equation_str, x0_str, tol=1e-6):
     try:
         x = sp.symbols('x')
         # Extract the right-hand side of the equation x = f(x)
@@ -17,8 +17,8 @@ def fixed_point_method(equation_str, x0_str, tol=1e-6, max_iter=100):
         return f"❌ Invalid input: {e}"
 
     try:
-        iter_count = 0
-        while iter_count < max_iter:
+        while True:
+            iter_count = 0
             x1 = g_func(x0)
             if abs(x1 - x0) < tol:
                 return f"{x1:.6f} found in {iter_count + 1} iterations."
