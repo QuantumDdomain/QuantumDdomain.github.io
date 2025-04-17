@@ -45,16 +45,3 @@ def get_piecewise_spline_functions(A, B):
         })
 
     return piecewise_functions
-
-def evaluate_spline(x_input, A, B):
-    functions = get_piecewise_spline_functions(A, B)
-    for spline in functions:
-        x0, x1 = spline["interval"]
-        if x0 <= x_input <= x1:
-            dx = x_input - x0
-            a = spline["a"]
-            b = spline["b"]
-            c = spline["c"]
-            d = spline["d"]
-            return a + b * dx + c * dx**2 + d * dx**3
-    return None  # if x_input is outside the range

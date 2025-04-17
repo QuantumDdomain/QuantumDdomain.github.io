@@ -49,17 +49,6 @@
       margin: 20px auto;
       border: 1px solid #ccc;
     }
-
-    label[for="showCoefficients"] {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-
-    #showCoefficients {
-      margin-right: 10px;
-    }
   </style>
 </head>
 <body>
@@ -71,11 +60,6 @@
 
     <label for="yValues">Y values (comma separated):</label>
     <input type="text" id="yValues" value="1,2,33,244" />
-
-    <label>
-      <input type="checkbox" id="showCoefficients" />
-      Show spline equations
-    </label>
 
     <button onclick="runSpline()">Generate Spline Plot</button>
 
@@ -107,7 +91,6 @@
       const pyodide = await pyodideReady;
       const xRaw = document.getElementById("xValues").value;
       const yRaw = document.getElementById("yValues").value;
-      const showCoefficients = document.getElementById("showCoefficients").checked;
 
       const xArray = xRaw.split(',').map(Number);
       const yArray = yRaw.split(',').map(Number);
@@ -129,15 +112,16 @@ import io
 import base64
 import numpy as np
 
+# Assuming get_piecewise_spline_functions is defined in the fetched Python script.
 plt.figure(figsize=(8,5))
-splines = get_piecewise_spline_functions(A, B, ${showCoefficients})
-for spline in splines:
+splines = []
+for spline in get_piecewise_spline_functions(A, B):
+    splines.append(spline)
     x0, x1 = spline["interval"]
     x_segment = np.linspace(x0, x1, 200)
     a, b, c, d = spline["a"], spline["b"], spline["c"], spline["d"]
     y_segment = a + b*(x_segment - x0) + c*(x_segment - x0)**2 + d*(x_segment - x0)**3
-    label = spline.get("equation", f"S(x) on [{x0}, {x1}]")
-    plt.plot(x_segment, y_segment, label=label)
+    plt.plot(x_segment, y_segment, label = f"S(x) on [{x0}, {x1}]: {a:.2f} + {b:.2f}(x-{x0}) + {c:.2f}(x-{x0})² + {d:.2f}(x-{x0})³")
 
 plt.plot(A, B, 'ro', label='Data Points')
 plt.title("Natural Cubic Spline")
@@ -187,7 +171,10 @@ def get_value_for_x(x, splines):
             return a + b*(x - x0) + c*(x - x0)**2 + d*(x - x0)**3
     return None
 
-splines = get_piecewise_spline_functions(A, B)
+splines = []
+for spline in get_piecewise_spline_functions(A, B):
+    splines.append(spline)
+
 interp_value = get_value_for_x(${xInterp}, splines)
       `);
 
