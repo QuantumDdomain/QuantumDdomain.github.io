@@ -41,5 +41,5 @@ def trapezoidal_rule(X_0, X_N, N, expr):
         total += (fn(x_i) + fn(x_next)) * h / 2
     result = sp.N(total)  # Convert to float at the end
     
+    # Return the symbolic output or numeric approximation
     return try_symbolic_output(result)
-
