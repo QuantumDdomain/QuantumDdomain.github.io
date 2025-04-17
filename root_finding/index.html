@@ -70,10 +70,15 @@
     <select id="algorithmSelect">
       <option value="bisection">Bisection Method</option>
       <option value="newton_raphson">Newton-Raphson Method</option>
+      <option value="secant">Secant Method</option>
+      <option value="fixed_point">Fixed Point Iteration</option> <!-- Added Fixed Point Iteration -->
     </select>
 
-    <label for="func_expr">Enter Function f(x):</label>
-    <input type="text" id="func_expr" placeholder="e.g., x**3 + 4*x**2 - 10" value="x**3 + 4*x**2 - 10">
+    <!-- General Function Input for Bisection, Newton-Raphson, and Secant Methods -->
+    <div id="generalFunctionInput">
+      <label for="func_expr">Enter Function f(x):</label>
+      <input type="text" id="func_expr" placeholder="e.g., x**3 + 4*x**2 - 10" value="x**3 + 4*x**2 - 10">
+    </div>
 
     <div id="bisectionInputs">
       <label for="lower">Lower Bound (a):</label>
@@ -86,6 +91,23 @@
     <div id="newtonRaphsonInputs" style="display:none;">
       <label for="x0">Initial Guess (x₀):</label>
       <input type="text" id="x0" value="1.5">
+    </div>
+
+    <div id="secantInputs" style="display:none;">
+      <label for="x0">Initial Guess (x₀):</label>
+      <input type="text" id="x0" value="1.5">
+
+      <label for="x1">Second Guess (x₁):</label>
+      <input type="text" id="x1" value="2.5">
+    </div>
+
+    <!-- Fixed Point Iteration Inputs -->
+    <div id="fixedPointInputs" style="display:none;">
+      <label for="fixed_func_expr">Enter Fixed Point Function f(x):</label>
+      <input type="text" id="fixed_func_expr" value="2 + log(x)">
+      
+      <label for="x0_fixed">Initial Guess (x₀):</label>
+      <input type="text" id="x0_fixed" value="1.5">
     </div>
 
     <button onclick="loadPyodideAndRun()">Find Root</button>
@@ -105,7 +127,8 @@
 
       const algorithm = document.getElementById("algorithmSelect").value;
       const expr = document.getElementById("func_expr").value.trim();
-
+      const x0 = document.getElementById("x0").value;
+      
       let code = "", inputCode = "";
 
       if (algorithm === "bisection") {
@@ -114,9 +137,19 @@
         code = await (await fetch("web_bisection_method.py")).text();
         inputCode = `result = bisection_method("${expr}", "${a}", "${b}")`;
       } else if (algorithm === "newton_raphson") {
-        const x0 = document.getElementById("x0").value;
         code = await (await fetch("web_newton_raphson.py")).text();
         inputCode = `result = newton_raphson_method("${expr}", "${x0}")`;
+      } else if (algorithm === "secant") {
+        const x1 = document.getElementById("x1").value;
+        const response = await fetch("web_secant_method.py");
+        const pyCode = await response.text();
+        await pyodide.runPythonAsync(pyCode);
+        inputCode = `result = secant_method("${expr}", "${x0}", "${x1}")`;
+      } else if (algorithm === "fixed_point") {
+        const fixedFunc = document.getElementById("fixed_func_expr").value;
+        const x0_fixed = document.getElementById("x0_fixed").value;
+        code = await (await fetch("web_fixed_point.py")).text();
+        inputCode = `result = fixed_point_method("${fixedFunc}", "${x0_fixed}")`;
       }
 
       try {
@@ -133,6 +166,15 @@
       const algo = this.value;
       document.getElementById("bisectionInputs").style.display = (algo === "bisection") ? "block" : "none";
       document.getElementById("newtonRaphsonInputs").style.display = (algo === "newton_raphson") ? "block" : "none";
+      document.getElementById("secantInputs").style.display = (algo === "secant") ? "block" : "none";
+      document.getElementById("fixedPointInputs").style.display = (algo === "fixed_point") ? "block" : "none";
+
+      // Show/Hide the general function input depending on the selected algorithm
+      if (algo === "fixed_point") {
+        document.getElementById("generalFunctionInput").style.display = "none";
+      } else {
+        document.getElementById("generalFunctionInput").style.display = "block";
+      }
     });
 
     pyodideReadyPromise
