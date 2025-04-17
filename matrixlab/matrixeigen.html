@@ -130,7 +130,7 @@ document.getElementById("output").innerText = output_text
       if (!pyodide) {
         pyodide = await loadPyodide();
         await pyodide.loadPackage("numpy");
-        document.getElementById("output").textContent = "✅ Pyodide loaded. Ready to calculate!";
+        document.getElementById("output").textContent = "✅ Loaded. Ready to calculate!";
       }
     
       try {

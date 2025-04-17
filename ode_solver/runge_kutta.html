@@ -71,7 +71,7 @@
 
     <button onclick="calculate()">Calculate</button>
 
-    <div id="output">Loading Pyodide...</div>
+    <div id="output">Loading...</div>
   </div>
 
   <script>
@@ -145,8 +145,8 @@ x_values, y_values
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").textContent = "Loaded. Ready to calculate!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
   </script>
 </body>
 </html>

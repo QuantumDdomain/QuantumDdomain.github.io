@@ -64,7 +64,7 @@
 
     <button onclick="solveSystem()">Solve</button>
 
-    <div id="output">Loading Pyodide...</div>
+    <div id="output">Loading...</div>
   </div>
 
   <script>
@@ -139,8 +139,8 @@ result = gauss_jordan_elimination(A, B)
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to solve!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").textContent = "Loaded. Ready to solve!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
   </script>
 </body>
 </html>

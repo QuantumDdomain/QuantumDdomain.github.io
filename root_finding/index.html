@@ -90,7 +90,7 @@
 
     <button onclick="loadPyodideAndRun()">Find Root</button>
 
-    <div id="output">Initializing Pyodide...</div>
+    <div id="output">Loading...</div>
   </div>
 
   <script>
@@ -136,8 +136,8 @@
     });
 
     pyodideReadyPromise
-      .then(() => document.getElementById("output").textContent = "✅ Pyodide loaded. Ready to compute! 🚀")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").textContent = "✅ Loaded. Ready to compute! 🚀")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
   </script>
 </body>
 </html>

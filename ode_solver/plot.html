@@ -42,7 +42,7 @@
   <div class="container">
     <h2>Runge-Kutta Plot (Pyodide)</h2>
     
-    <div id="status">Loading Pyodide...</div>
+    <div id="status">Loading...</div>
 
     <label>dy/dx = f(x, y)</label>
     <input id="fx" value="x + y" />
@@ -76,13 +76,13 @@
       await pyodide.loadPackage([
         "numpy", "sympy", "matplotlib"
       ]);
-      document.getElementById("status").innerText = "Pyodide loaded ✅";
+      document.getElementById("status").innerText = "Loaded ✅";
       pyodideReady = true;
     }
 
     async function run() {
       if (!pyodideReady) {
-        alert("Pyodide not ready yet. Please wait...");
+        alert("Not ready yet. Please wait...");
         return;
       }
 

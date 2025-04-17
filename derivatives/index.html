@@ -142,7 +142,7 @@
 
     <button onclick="calculate()">Calculate</button>
 
-    <div id="output">Loading Pyodide...</div>
+    <div id="output">Loading...</div>
   </div>
 
   <script>
@@ -209,8 +209,8 @@
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Pyodide loaded. Ready to calculate!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").textContent = "Loaded. Ready to calculate!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
 
     window.onload = function() {
       document.getElementById("loadingScreen").style.display = "none";

@@ -106,7 +106,7 @@ async function runCode() {
   if (!pyodide) {
     pyodide = await loadPyodide();
     await pyodide.loadPackage("numpy");
-    document.getElementById("output").textContent = "✅ Pyodide loaded. Ready!";
+    document.getElementById("output").textContent = "✅ Loaded. Ready!";
   }
 
   try {
