@@ -67,7 +67,10 @@
     <button onclick="runLagrange()">Generate Lagrange Plot</button>
 
     <div id="output">Loading Pyodide...</div>
-    <div id="plot-area"></div>
+    <div id="plot-area" style="overflow-x: auto; max-width: 100%; padding-top: 20px;">
+      <div id="plot-wrapper" style="min-width: 1000px;"></div>
+    </div>
+    
   </div>
 
   <script>
@@ -148,7 +151,8 @@ img_data = base64.b64encode(buf.read()).decode('utf-8')
 `);
       const imgData = pyodide.runPython("img_data");
       document.getElementById("output").innerText = `✅ P(${xEval}) evaluated and plot generated!`;
-      document.getElementById("plot-area").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Lagrange Plot"/>`;
+      document.getElementById("plot-wrapper").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" style="width: 100%; max-width: none;" />`;
+
     }
 
     pyodideReady
