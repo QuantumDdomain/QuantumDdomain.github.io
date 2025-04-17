@@ -179,7 +179,7 @@ async function runCode() {
   btn.disabled = true;
 
   if (!pyodide) {
-    document.getElementById("output").textContent = "⏳ Loading Pyodide...";
+    document.getElementById("output").textContent = "⏳ Loading...";
     pyodide = await loadPyodide();
     await pyodide.loadPackage(["numpy", "scipy", "matplotlib"]);
   }
