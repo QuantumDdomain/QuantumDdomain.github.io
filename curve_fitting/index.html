@@ -45,6 +45,14 @@
       border-radius: 8px;
       white-space: pre-line;
     }
+    #plot {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #plot img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -65,61 +73,91 @@
   <label>Enter y values (e.g. [2.3, 4.1, 5.9, 8.0]):</label>
   <textarea id="yInput">[2.3, 4.1, 5.9, 8.0, 10.2]</textarea>
 
+  <label>Evaluate y at x =</label>
+  <input id="xEval" type="text" placeholder="Enter a value to evaluate y">
+
   <button onclick="runCode()">Fit Curve</button>
   <pre id="output">Output will appear here...</pre>
+  <div id="plot"></div>
 </div>
 
 <script type="text/python">
 import numpy as np
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 from js import document
+import io
+import base64
 
-def linear(x, a, b):
-    return a * x + b
+def linear(x, a, b): return a * x + b
+def power(x, a, b): return a * np.power(x, b)
+def exponential(x, a, b): return a * np.power(b, x)
+def custom(x, a, b, c, d): return a * np.power(x, b) + c * np.power(x, d)
 
-def power(x, a, b):
-    return a * np.power(x, b)
+x_vals = eval(document.getElementById("xInput").value)
+y_vals = eval(document.getElementById("yInput").value)
+model_type = document.getElementById("modelType").value
+x_eval_input = document.getElementById("xEval").value
 
-def exponential(x, a, b):
-    return a * np.power(b, x)
+if not (isinstance(x_vals, list) and isinstance(y_vals, list)):
+    raise ValueError("x and y inputs must be lists.")
+if len(x_vals) != len(y_vals):
+    raise ValueError("x and y must have the same length.")
 
-def custom(x, a, b, c, d):
-    return a * np.power(x, b) + c * np.power(x, d)
+x_vals = np.array(x_vals, dtype=float)
+y_vals = np.array(y_vals, dtype=float)
+model = None
+popt = None
 
-def fit_curve(x, y, model):
-    if model == "linear":
-        popt, _ = curve_fit(linear, x, y)
-        return "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-    elif model == "power":
-        popt, _ = curve_fit(power, x, y)
-        return "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-    elif model == "exponential":
-        popt, _ = curve_fit(exponential, x, y)
-        return "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-    elif model == "custom":
-        popt, _ = curve_fit(custom, x, y)
-        return "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
-    else:
-        return "Unknown model selected."
+if model_type == "linear":
+    model = linear
+    popt, _ = curve_fit(linear, x_vals, y_vals)
+    output = "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+elif model_type == "power":
+    model = power
+    popt, _ = curve_fit(power, x_vals, y_vals)
+    output = "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+elif model_type == "exponential":
+    model = exponential
+    popt, _ = curve_fit(exponential, x_vals, y_vals)
+    output = "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+elif model_type == "custom":
+    model = custom
+    popt, _ = curve_fit(custom, x_vals, y_vals)
+    output = "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
+else:
+    output = "Unknown model selected."
 
-try:
-    x_vals = eval(document.getElementById("xInput").value)
-    y_vals = eval(document.getElementById("yInput").value)
-    model_type = document.getElementById("modelType").value
+# Evaluate at x_eval if provided
+if x_eval_input.strip() != "":
+    try:
+        x_eval_val = float(x_eval_input)
+        y_eval_val = model(x_eval_val, *popt)
+        output += f"\n\nPredicted y at x = {x_eval_val} is: {y_eval_val:.4f}"
+    except Exception as e:
+        output += f"\n\n❌ Error evaluating y at x = {x_eval_input}: {e}"
 
-    if not (isinstance(x_vals, list) and isinstance(y_vals, list)):
-        raise ValueError("x and y inputs must be lists.")
-    if len(x_vals) != len(y_vals):
-        raise ValueError("x and y must have the same length.")
+# Plotting
+x_line = np.linspace(min(x_vals), max(x_vals), 100)
+y_line = model(x_line, *popt)
 
-    x_vals = np.array(x_vals, dtype=float)
-    y_vals = np.array(y_vals, dtype=float)
+plt.figure(figsize=(6,4))
+plt.scatter(x_vals, y_vals, color='red', label='Data Points')
+plt.plot(x_line, y_line, label='Fitted Curve')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Curve Fitting')
+plt.legend()
+plt.grid(True)
 
-    result = fit_curve(x_vals, y_vals, model_type)
-except Exception as e:
-    result = f"❌ Error: {e}"
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
+img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+buf.close()
 
-document.getElementById("output").innerText = result
+document.getElementById("output").innerText = output
+document.getElementById("plot").innerHTML = f'<img src="data:image/png;base64,{img_base64}"/>'
 </script>
 
 <script>
@@ -128,8 +166,7 @@ async function runCode() {
   if (!pyodide) {
     document.getElementById("output").textContent = "⏳ Loading Pyodide...";
     pyodide = await loadPyodide();
-    await pyodide.loadPackage("scipy");
-    await pyodide.loadPackage("numpy");
+    await pyodide.loadPackage(["numpy", "scipy", "matplotlib"]);
     document.getElementById("output").textContent = "✅ Pyodide loaded. Ready!";
   }
 
@@ -137,6 +174,7 @@ async function runCode() {
     await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
   } catch (err) {
     document.getElementById("output").innerText = "❌ Python Error:\n" + err;
+    document.getElementById("plot").innerHTML = "";
   }
 }
 </script>
