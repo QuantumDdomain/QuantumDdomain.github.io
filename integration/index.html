@@ -113,11 +113,11 @@
         await pyodide.loadPackage("sympy");
 
         document.getElementById("output").innerText =
-          "✅ Pyodide and SymPy loaded. Ready to calculate!";
+          "✅ Loaded. Ready to calculate!";
         document.getElementById("output").classList.remove("loading");
       } catch (err) {
         document.getElementById("output").innerText =
-          "❌ Failed to load Pyodide or SymPy: " + err;
+          "❌ Failed to load: " + err;
         document.getElementById("output").classList.remove("loading");
       }
     }
