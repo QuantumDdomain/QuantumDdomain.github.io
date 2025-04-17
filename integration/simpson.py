@@ -1,23 +1,5 @@
 import sympy as sp
 
-def try_symbolic_output(value, tol=1e-4):
-    # Check if the value is already a symbolic expression or a float
-    if isinstance(value, sp.Basic):
-        value = sp.N(value)  # Convert symbolic expression to numeric value
-
-    # Check if the value is close to any common symbolic expression
-    pi_multiple = sp.pi * sp.Rational(value).limit_denominator()
-    sqrt_multiple = sp.sqrt(value).limit_denominator()
-
-    # Compare the value with approximated multiples of pi or sqrt(x)
-    if abs(value - float(pi_multiple)) < tol:
-        return f'{pi_multiple}'
-    elif abs(value - float(sqrt_multiple)) < tol:
-        return f'{sqrt_multiple}'
-    
-    # Otherwise, return the numeric value (as float)
-    return str(value)
-
 def simpsonI_rule(X_0, X_N, N, expr):
     # Ensure inputs are sympy expressions
     X_0 = sp.sympify(X_0)
@@ -43,4 +25,4 @@ def simpsonI_rule(X_0, X_N, N, expr):
     result = sp.N(total)  # Convert to numeric result at the end
     
     # Attempt to return a symbolic result
-    return try_symbolic_output(result)
+    return result

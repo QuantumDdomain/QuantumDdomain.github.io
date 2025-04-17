@@ -1,29 +1,5 @@
 import sympy as sp
 
-def try_symbolic_output(value, tol=1e-4):
-    # Convert the float value to a sympy expression
-    value_expr = sp.sympify(value)
-    
-    # Simplify the expression to its most symbolic form
-    simplified_expr = sp.simplify(value_expr)
-    
-    # Attempt to approximate to a fraction (in terms of pi or other constants)
-    if abs(float(simplified_expr) - float(value_expr)) < tol:
-        return str(simplified_expr)
-    
-    # Handle cases where pi or sqrt(x) might be involved
-    pi_multiple = sp.pi * sp.Rational(value_expr).limit_denominator()
-    sqrt_multiple = sp.sqrt(value_expr).limit_denominator()
-
-    # Check if the result is close to any known symbolic constants
-    if abs(value_expr - pi_multiple) < tol:
-        return f'{pi_multiple}'
-    elif abs(value_expr - sqrt_multiple) < tol:
-        return f'{sqrt_multiple}'
-    
-    # Return the simplified symbolic form, if no close match is found
-    return str(simplified_expr)
-
 def trapezoidal_rule(X_0, X_N, N, expr):
     # Ensure inputs are sympy expressions
     X_0 = sp.sympify(X_0)
@@ -42,4 +18,4 @@ def trapezoidal_rule(X_0, X_N, N, expr):
     result = sp.N(total)  # Convert to float at the end
     
     # Return the symbolic output or numeric approximation
-    return try_symbolic_output(result)
+    return result
