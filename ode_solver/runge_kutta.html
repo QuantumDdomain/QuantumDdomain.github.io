@@ -7,9 +7,10 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color: #f7f7f7;
       padding: 20px;
     }
+
     .container {
       max-width: 700px;
       margin: auto;
@@ -18,6 +19,7 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
+
     textarea, input, button, select {
       width: 100%;
       padding: 10px;
@@ -26,18 +28,22 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
     button {
       background-color: #3498db;
       color: white;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #2980b9;
     }
+
     h1 {
       text-align: center;
       color: #2c3e50;
     }
+
     #output {
       margin-top: 20px;
       padding: 15px;
@@ -45,50 +51,38 @@
       border-radius: 8px;
       white-space: pre-line;
     }
-    .warning {
-      color: #e74c3c;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    #output.loading::after {
-      content: ' ⏳';
-      animation: blink 1s infinite;
-    }
-    @keyframes blink {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
-    }
   </style>
 </head>
 <body>
-  <h1>Runge-Kutta Method Solver</h1>
+  <div class="container">
+    <h1>Runge-Kutta Method Solver</h1>
 
-  <label for="fx">dy/dx = f(x, y):</label>
-  <input type="text" id="fx" value="x + y">
+    <label for="fx">dy/dx = f(x, y):</label>
+    <input type="text" id="fx" value="x + y">
 
-  <label for="x0">Initial x (x₀):</label>
-  <input type="text" id="x0" value="0">
+    <label for="x0">Initial x (x₀):</label>
+    <input type="text" id="x0" value="0">
 
-  <label for="y0">Initial y (y₀):</label>
-  <input type="text" id="y0" value="1">
+    <label for="y0">Initial y (y₀):</label>
+    <input type="text" id="y0" value="1">
 
-  <label for="X">Final x (X):</label>
-  <input type="text" id="X" value="1">
+    <label for="X">Final x (X):</label>
+    <input type="text" id="X" value="1">
 
-  <label for="h">Step Size (h):</label>
-  <input type="text" id="h" value="0.1">
+    <label for="h">Step Size (h):</label>
+    <input type="text" id="h" value="0.1">
 
-  <label for="order">Method Order:</label>
-  <select id="order">
-    <option value="2">2nd Order</option>
-    <option value="3">3rd Order</option>
-    <option value="4" selected>4th Order</option>
-  </select>
+    <label for="order">Method Order:</label>
+    <select id="order">
+      <option value="2">2nd Order</option>
+      <option value="3">3rd Order</option>
+      <option value="4" selected>4th Order</option>
+    </select>
 
-  <button onclick="compute()">Compute</button>
+    <button onclick="compute()">Compute</button>
 
-  <div id="output">Output will appear here...</div>
+    <div id="output">Output will appear here...</div>
+  </div>
 
   <script type="text/javascript">
     let pyodideReady = false;
