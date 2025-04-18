@@ -20,7 +20,7 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
 
-    input, button, textarea {
+    input, button, textarea, select {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -44,8 +44,10 @@
       text-align: center;
     }
 
-    textarea {
-      font-family: monospace;
+    .inline-buttons button {
+      width: auto;
+      margin-right: 10px;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -67,56 +69,87 @@
     <div id="output">Loading Pyodide...</div>
   </div>
 
+  <!-- Constant Inserter Panel -->
+  <div class="container" style="margin-top: 20px;">
+    <h3>Insert Constants</h3>
+
+    <label for="insertTarget">Insert into:</label>
+    <select id="insertTarget">
+      <option value="guess1">Guess 1</option>
+      <option value="guess2">Guess 2</option>
+    </select>
+
+    <div class="inline-buttons">
+      <button onclick="insertConstant('pi')">π</button>
+      <button onclick="insertConstant('E')">e</button>
+    </div>
+  </div>
+
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
       await pyodide.loadPackage("sympy");
       return pyodide;
     })();
-
+  
     async function runSecant() {
       const pyodide = await pyodideReady;
-
+  
       const funcText = document.getElementById("functionInput").value;
       const guess1 = document.getElementById("guess1").value;
       const guess2 = document.getElementById("guess2").value;
-
+  
       const pyCode = await fetch("secant_complex.py").then(res => res.text());
-
+  
       pyodide.globals.set("user_func_code", funcText);
       pyodide.globals.set("guess1", guess1);
       pyodide.globals.set("guess2", guess2);
-
+  
       try {
-        // Load secant method from the external Python file (secant_complex.py)
         pyodide.runPython(pyCode);
-
-        // Now we run the logic with the user-defined function
+  
         pyodide.runPython(`
-# Dynamically create the function using user input
-def fn(x):
-    try:
-        return ${funcText}
-    except Exception as e:
-        return None
-
-try:
-    root, iterations = secant_method(fn, complex(guess1), complex(guess2))
-    result_text = f"✅ Root: {root} <br> Iterations: {iterations}"
-except Exception as e:
-    result_text = "❌ Error: " + str(e)
+  from sympy import pi, E
+  def fn(x):
+      try:
+          return ${funcText}
+      except Exception as e:
+          return None
+  
+  try:
+      root, iterations = secant_method(fn, complex(guess1), complex(guess2))
+      result_text = f"✅ Root: {root} <br> Iterations: {iterations}"
+  except Exception as e:
+      result_text = "❌ Error: " + str(e)
         `);
-
+  
         const result = pyodide.globals.get("result_text");
         document.getElementById("output").innerHTML = result;
       } catch (err) {
         document.getElementById("output").innerHTML = "❌ Pyodide execution error: " + err;
       }
     }
-
+  
+    function insertConstant(valueName) {
+      const targetId = document.getElementById("insertTarget").value;
+      const inputField = document.getElementById(targetId);
+  
+      let value = "";
+      switch (valueName) {
+        case "pi":
+          value = Math.PI.toString();
+          break;
+        case "E":
+          value = Math.E.toString();
+          break;
+      }
+  
+      inputField.value += value;
+    }
+  
     pyodideReady
       .then(() => document.getElementById("output").innerText = "Pyodide Loaded. Ready.")
       .catch(err => document.getElementById("output").innerText = "❌ Failed to load Pyodide.");
-  </script>
+  </script>  
 </body>
 </html>
