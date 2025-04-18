@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Lagrange Interpolation Plot</title>
+  <script src="../warning.js" defer></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async
@@ -133,6 +134,9 @@ img_data = base64.b64encode(buf.read()).decode('utf-8')
 latex_poly = sp.latex(P)
 plain_poly = str(P)
 eval_val = y_val
+
+document.getElementById("output").innerText = output
+document.getElementById("plot").innerHTML = f'<img id="plotImg" src="data:image/png;base64,{img_base64}"/>'
       `);
 
       const imgData = pyodide.runPython("img_data");
@@ -160,6 +164,14 @@ eval_val = y_val
     pyodideReady
       .then(() => document.getElementById("output").innerText = "Loaded. Ready to run!")
       .catch(err => document.getElementById("output").innerText = "❌ Failed to load");
+  function downloadPlot() {
+    const img = document.getElementById("plotImg");
+    if (!img) return;
+    const a = document.createElement("a");
+    a.href = img.src;
+    a.download = "curve_fit_plot.png";
+    a.click();
+  }
   </script>
 </body>
 </html>
