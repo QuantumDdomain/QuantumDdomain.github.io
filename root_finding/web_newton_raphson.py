@@ -59,7 +59,7 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
         f_prime_x0 = sp.N(derivative_expr.subs(x, x0))
 
         if f_prime_x0 == 0:
-            raise ZeroDivisionError("Derivative is zero. No solution found.")
+            raise ZeroDivisionError("❌ Derivative is zero. No solution found.")
 
         x1 = x0 - f_x0 / f_prime_x0
 
