@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <title>Lagrange Interpolation Plot</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
   <style>
     body {
       font-family: sans-serif;
@@ -12,7 +16,7 @@
     }
 
     .container {
-      max-width: 700px;
+      max-width: 800px;
       margin: auto;
       background: white;
       padding: 25px;
@@ -39,15 +43,14 @@
       background-color: #27ae60;
     }
 
-    #output {
+    #output, #polyDisplay {
       margin-top: 20px;
       text-align: center;
     }
 
-    canvas {
-      display: block;
-      margin: 20px auto;
-      border: 1px solid #ccc;
+    img {
+      margin-top: 20px;
+      max-width: 100%;
     }
   </style>
 </head>
@@ -67,18 +70,15 @@
     <button onclick="runLagrange()">Generate Lagrange Plot</button>
 
     <div id="output">Loading...</div>
-    <div id="plot-area" style="overflow-x: auto; max-width: 100%; padding-top: 20px;">
-      <div id="plot-wrapper" style="min-width: 1000px;"></div>
-    </div>
-    
+    <div id="polyDisplay"></div>
+    <div id="plot-wrapper"></div>
   </div>
 
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
       await pyodide.loadPackage(["numpy", "sympy"]);
-      await pyodide.loadPackage("matplotlib"); // must be loaded separately
-
+      await pyodide.loadPackage("matplotlib");
       return pyodide;
     })();
 
@@ -102,31 +102,13 @@
         return;
       }
 
-      const pyCode = await fetch('web_lagrange_interpolation.py').then(res => res.text());
+      const pyCode = await fetch("web_lagrange_interpolation.py").then(res => res.text());
 
       pyodide.globals.set("A", pyodide.toPy(xArray));
       pyodide.globals.set("B", pyodide.toPy(yArray));
       pyodide.globals.set("x_eval", xEval);
 
       pyodide.runPython(pyCode + `
-import sympy as sp
-import numpy as np
-import matplotlib.pyplot as plt
-import io
-import base64
-
-def lagrange_interpolation_symbolic(A, B):
-    x = sp.Symbol('x')
-    n = len(A)
-    P = 0
-    for i in range(n):
-        term = 1
-        for j in range(n):
-            if i != j:
-                term *= (x - A[j]) / (A[i] - A[j])
-        P += B[i] * term
-    return sp.simplify(P)
-
 P = lagrange_interpolation_symbolic(A, B)
 y_val = P.subs('x', x_eval)
 
@@ -135,7 +117,7 @@ f_numeric = sp.lambdify('x', P, modules=['numpy'])
 y_numeric = f_numeric(x_numeric)
 
 plt.figure(figsize=(8,5))
-plt.plot(x_numeric, y_numeric, label=f'P(x): {sp.latex(P)}')
+plt.plot(x_numeric, y_numeric)
 plt.plot(A, B, 'ro', label='Data Points')
 plt.plot(x_eval, y_val, 'go', label=f'P({x_eval:.2f}) = {y_val:.4f}')
 plt.title("Lagrange Interpolation")
@@ -148,11 +130,31 @@ buf = io.BytesIO()
 plt.savefig(buf, format='png')
 buf.seek(0)
 img_data = base64.b64encode(buf.read()).decode('utf-8')
-`);
-      const imgData = pyodide.runPython("img_data");
-      document.getElementById("output").innerText = `✅ P(${xEval}) evaluated and plot generated!`;
-      document.getElementById("plot-wrapper").innerHTML = `<img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" style="width: 100%; max-width: none;" />`;
+latex_poly = sp.latex(P)
+plain_poly = str(P)
+eval_val = y_val
+      `);
 
+      const imgData = pyodide.runPython("img_data");
+      const latex = pyodide.runPython("latex_poly");
+      const plain = pyodide.runPython("plain_poly");
+      const y_val = pyodide.runPython("eval_val");
+
+      document.getElementById("output").innerHTML = `✅ P(${xEval}) = <b>${y_val}</b>`;
+      document.getElementById("polyDisplay").innerHTML = `
+        <p><strong>Interpolated Polynomial:</strong></p>
+        <div style="overflow-x: auto; max-width: 100%;">
+          <div style="min-width: 400px;">
+            <p>\\[ P(x) = ${latex} \\]</p>
+          </div>
+        </div>
+
+      `;
+      document.getElementById("plot-wrapper").innerHTML = `
+        <img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" />
+      `;
+
+      if (window.MathJax) MathJax.typeset();
     }
 
     pyodideReady
