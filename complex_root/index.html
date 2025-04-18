@@ -64,7 +64,7 @@
 
     <button onclick="runSecant()">Run Secant Method</button>
 
-    <div id="output">Loading Pyodide...</div>
+    <div id="output">Loading...</div>
   </div>
 
   <script>
@@ -110,13 +110,13 @@ except Exception as e:
         const result = pyodide.globals.get("result_text");
         document.getElementById("output").innerHTML = result;
       } catch (err) {
-        document.getElementById("output").innerHTML = "❌ Pyodide execution error: " + err;
+        document.getElementById("output").innerHTML = "❌ Execution error: " + err;
       }
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").innerText = "Pyodide Loaded. Ready.")
-      .catch(err => document.getElementById("output").innerText = "❌ Failed to load Pyodide.");
+      .then(() => document.getElementById("output").innerText = "Loaded. Ready.")
+      .catch(err => document.getElementById("output").innerText = "❌ Failed to load");
   </script>
 </body>
 </html>
