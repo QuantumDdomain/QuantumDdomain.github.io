@@ -48,4 +48,10 @@ def calculate_second_derivative(expr, xval, hval):
 
     # 5-Point Formula for second derivative
     second_derivative = (func.subs(x, xval + hval) - 2*func.subs(x, xval) + func.subs(x, xval - hval)) / (hval**2)
-    return approximation(second_derivative)
+    simplified = approximation(second_derivative)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return second_derivative.evalf(5)
+    
+    return simplified

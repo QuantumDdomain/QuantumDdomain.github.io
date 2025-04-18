@@ -49,5 +49,12 @@ def richardson_extrapolation(expr_str, x, r, h):
 
     def D_r(fn, x, r, h):
         return (fn(x + r*h) - fn(x - r*h)) / (2*r*h)
+    derivative = (D_r(f, x, r, h) - r**2 * D_r(f, x, 1, h)) / (1 - r**2)
 
-    return approximation((D_r(f, x, r, h) - r**2 * D_r(f, x, 1, h)) / (1 - r**2))
+    simplified = approximation(derivative)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return derivative.evalf(5)
+    
+    return simplified

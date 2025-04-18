@@ -60,4 +60,13 @@ def bisection_method(expr_str, a, b, tol=1e-6):
         iterations += 1
         if iterations > 1000:
             raise ValueError("The method did not converge in 1000 iterations.")
-    return approximation((a + b) / 2), iterations
+        result = (a + b) / 2
+        result = float(result)
+
+    simplified = approximation(result)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return result.evalf(5)
+    
+    return simplified,iterations

@@ -48,4 +48,10 @@ def calculate_first_derivative(expr, xval, hval):
 
     # 3-Point Formula for first derivative
     derivative = (func.subs(x, xval + hval) - func.subs(x, xval - hval)) / (2 * hval)
-    return approximation(derivative)
+    simplified = approximation(derivative)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return derivative.evalf(5)
+    
+    return simplified

@@ -64,7 +64,12 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
         x1 = x0 - f_x0 / f_prime_x0
 
         if abs(x1 - x0) < tol:
-            return approximation(x1), iterations
+            simplified = approximation(x1)
+    
+            # Fallback: if the simplification is long (not mobile-friendly), return decimal
+            if len(str(simplified)) > 20:
+                return x1.evalf(5)
+            return simplified, iterations
 
         x0 = x1
         iterations += 1

@@ -68,13 +68,22 @@ def secant_method(expr_str, x0_str, x1_str, tol=1e-6, max_iter=100):
 
             x_temp = x1 - fx1 * (x1 - x0) / denominator
             if abs((x_temp - x1) / x_temp) < tol:
-                return approximation(x_temp), iterations + 1
+                simplified = approximation(x_temp)   
+                # Fallback: if the simplification is long (not mobile-friendly), return decimal
+                if len(str(simplified)) > 20:
+                    return x_temp.evalf(5)               
+                return simplified, iterations + 1
 
             x0, fx0 = x1, fx1
             x1, fx1 = x_temp, evaluate_function(expr_str, x_temp)
             iterations += 1
+            simplified = approximation(x1)
+    
+            # Fallback: if the simplification is long (not mobile-friendly), return decimal
+            if len(str(simplified)) > 20:
+                return x1.evalf(5)
 
-        return round(x1, 6), f"⚠️ Maximum iterations reached. Last estimate after {iterations} iterations."
+        return simplified, f"⚠️ Maximum iterations reached. Last estimate after {iterations} iterations."
 
     except Exception as e:
         return None, f"❌ Error during calculation: {e}"

@@ -54,7 +54,12 @@ def fixed_point_method(equation_str, x0_str, tol=1e-6, max_iter=1000):
         while iter_count < max_iter:
             x1 = g_func(x0)
             if abs(x1 - x0) < tol:
-                return f"{approximation(x1)} found in {iter_count + 1} iterations."
+                simplified = approximation(x1)
+    
+                # Fallback: if the simplification is long (not mobile-friendly), return decimal
+                if len(str(simplified)) > 20:
+                    return x1.evalf(5)
+                return f"{simplified} found in {iter_count + 1} iterations."
             x0 = x1
             iter_count += 1
 

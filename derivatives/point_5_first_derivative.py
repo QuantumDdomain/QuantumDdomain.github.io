@@ -53,4 +53,10 @@ def calculate_first_derivative(expr, xval, hval):
     derivative = (-func.subs(x, xval + 2*hval) + 8*func.subs(x, xval + hval) -
                   8*func.subs(x, xval - hval) + func.subs(x, xval - 2*hval)) / (12*hval)
 
-    return approximation(derivative)
+    simplified = approximation(derivative)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return derivative.evalf(5)
+    
+    return simplified
