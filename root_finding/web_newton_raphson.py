@@ -50,28 +50,25 @@ def newton_raphson_method(expr_str, x0, tol=1e-6, max_iter=1000):
     expr = sp.sympify(expr_str)
     derivative_expr = sp.diff(expr, x)
 
-    # ✅ Convert x0 to symbolic (if it's passed as a string like "1 + I")
     x0 = sp.sympify(x0)
-
     iterations = 0
+
     while iterations < max_iter:
         f_x0 = sp.N(expr.subs(x, x0))
         f_prime_x0 = sp.N(derivative_expr.subs(x, x0))
 
-        if f_prime_x0 == 0:
-            raise ZeroDivisionError("❌ Derivative is zero. No solution found.")
+        if abs(f_prime_x0) < 1e-12:
+            return "❌ Derivative near zero. Method cannot proceed."
 
         x1 = x0 - f_x0 / f_prime_x0
 
         if abs(x1 - x0) < tol:
             simplified = approximation(x1)
-    
-            # Fallback: if the simplification is long (not mobile-friendly), return decimal
             if len(str(simplified)) > 20:
-                return x1.evalf(5)
+                return x1.evalf(5), iterations
             return simplified, iterations
 
         x0 = x1
         iterations += 1
 
-    raise ValueError("Method did not converge.")
+    return "❌ Method did not converge.", iterations
