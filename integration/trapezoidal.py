@@ -57,4 +57,10 @@ def trapezoidal_rule(X_0, X_N, N, expr):
     result = sp.N(total)  # Convert to float at the end
     
     # Return the symbolic output or numeric approximation
-    return approximation(result)
+    simplified = approximation(result)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return result.evalf(5)
+    
+    return simplified

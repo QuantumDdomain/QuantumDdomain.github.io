@@ -51,7 +51,13 @@ def gaussian_quadrature_1_weighting_factor(a, b, expr):
     sum = W * fn(a + X * (b - a))  # Evaluate the function at the midpoint
     result = (b - a) * sp.N(sum)  # Multiply by the width and evaluate numerically
     
-    return approximation(result)
+    simplified = approximation(result)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return result.evalf(5)
+    
+    return simplified
 
 def gaussian_quadrature_2_weighting_factor(a, b, expr):
     x = sp.symbols('x')
@@ -67,7 +73,13 @@ def gaussian_quadrature_2_weighting_factor(a, b, expr):
         sum += W[i] * fn(a + X[i] * (b - a))  # Evaluate the function at the 2 quadrature points
     result = (b - a) * sp.N(sum)  # Multiply by the width and evaluate numerically
     
-    return approximation(result)
+    simplified = approximation(result)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return result.evalf(5)
+    
+    return simplified
 
 def gaussian_quadrature_3_weighting_factor(a, b, expr):
     x = sp.symbols('x')
@@ -83,4 +95,10 @@ def gaussian_quadrature_3_weighting_factor(a, b, expr):
         sum += W[i] * fn(a + X[i] * (b - a))  # Evaluate the function at the 3 quadrature points
     result = (b - a) * sp.N(sum)  # Multiply by the width and evaluate numerically
     
-    return approximation(result)
+    simplified = approximation(result)
+    
+    # Fallback: if the simplification is long (not mobile-friendly), return decimal
+    if len(str(simplified)) > 20:
+        return result.evalf(5)
+    
+    return simplified
