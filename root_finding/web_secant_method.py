@@ -45,9 +45,7 @@ def evaluate_function(expr_str, x_val):
     return float(expr.subs(x, x_val))
 
 def secant_method(expr_str, x0_str, x1_str, tol=1e-6, max_iter=100):
-    x = sp.symbols('x')
     try:
-        expr = sp.sympify(expr_str)
         x0 = float(sp.sympify(x0_str))
         x1 = float(sp.sympify(x1_str))
     except Exception as e:
