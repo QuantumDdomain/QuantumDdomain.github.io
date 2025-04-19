@@ -5,6 +5,15 @@
   <title>Lagrange Interpolation</title>
   <script src="../warning.js" defer></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <script type="text/javascript">
+    // MathJax configuration to use local fonts only
+    MathJax.Hub.Config({
+      "HTML-CSS": {
+        availableFonts: ["TeX"],  // Only use TeX fonts
+        linebreaks: { automatic: true }
+      }
+    });
+  </script>
   <style>
     body {
       font-family: sans-serif;
@@ -154,7 +163,7 @@ plain_poly = str(polynomial)
         <img src="data:image/png;base64,${imgData}" alt="Plot" />
       `;
 
-      // Re-render LaTeX using MathJax
+      // Re-render LaTeX using MathJax (local)
       if (window.MathJax) MathJax.typeset();
     }
 
@@ -178,11 +187,8 @@ eval_value = polynomial.subs('x', x_query)
     });
   </script>
 
-  <!-- MathJax for LaTeX rendering -->
-  <script type="text/javascript" async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-  </script>
+  <!-- MathJax (local version) -->
+  <script type="text/javascript" async src="node_modules/mathjax/es5/tex-mml-chtml.js"></script>
 
-  </script>
 </body>
 </html>
