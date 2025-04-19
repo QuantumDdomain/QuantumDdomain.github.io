@@ -57,6 +57,7 @@
       <option value="euler">Euler Method</option>
       <option value="runge_kutta">Runge-Kutta Method</option>
       <option value="plot">ODE Plotting </option>
+      <option value="multivariable_rk">Multivariable RK4 Solver</option>
     </select>
 
     <button onclick="redirect()">Proceed</button>
@@ -73,9 +74,12 @@
         window.location.href = "runge_kutta.html";
       } else if (method === "plot") {
         window.location.href = "plot.html";
+      } else if (method === "multivariable_rk") {
+        window.location.href = "multivariable_rk.html";
       } else {
         document.getElementById("output").innerText = "⚠️ Please select a method before proceeding.";
-      }
+      } 
+
     }
   </script>
 </body>
