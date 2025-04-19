@@ -69,7 +69,12 @@
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "sympy", "matplotlib"]);
+      await pyodide.loadPackage(["numpy", "sympy"]);
+      // Use micropip to install matplotlib
+      await pyodide.runPythonAsync(`
+import micropip
+await micropip.install('matplotlib')
+`);
       return pyodide;
     })();
 
@@ -93,13 +98,15 @@
         return;
       }
 
-      const pyCode = await fetch("web_lagrange_interpolation.py").then(res => res.text());
+      // Fetch and run your external Python script
+      const pyCode = await (await fetch("web_lagrange_interpolation.py")).text();
+      await pyodide.runPythonAsync(pyCode);
 
       pyodide.globals.set("A", pyodide.toPy(xArray));
       pyodide.globals.set("B", pyodide.toPy(yArray));
       pyodide.globals.set("x_eval", xEval);
 
-      pyodide.runPython(`
+      await pyodide.runPythonAsync(`
 import numpy as np
 import sympy as sp
 import io, base64
@@ -129,7 +136,6 @@ buf.seek(0)
 img_data = base64.b64encode(buf.read()).decode('utf-8')
 
 latex_poly = sp.latex(P)
-plain_poly = str(P)
 eval_val = y_val
       `);
 
