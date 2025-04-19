@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <title>Lagrange Interpolation Plot</title>
-  <script src="../warning.js" defer></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-  </script>
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     body {
       font-family: sans-serif;
       background: #f0f0f0;
       padding: 20px;
     }
-
     .container {
       max-width: 800px;
       margin: auto;
@@ -24,7 +21,6 @@
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
-
     input, button {
       width: 100%;
       padding: 10px;
@@ -33,22 +29,18 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-
     button {
       background-color: #2ecc71;
       color: white;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #27ae60;
     }
-
     #output, #polyDisplay {
       margin-top: 20px;
       text-align: center;
     }
-
     img {
       margin-top: 20px;
       max-width: 100%;
@@ -78,8 +70,7 @@
   <script>
     let pyodideReady = (async () => {
       let pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "sympy"]);
-      await pyodide.loadPackage("matplotlib");
+      await pyodide.loadPackage(["numpy", "sympy", "matplotlib"]);
       return pyodide;
     })();
 
@@ -109,16 +100,22 @@
       pyodide.globals.set("B", pyodide.toPy(yArray));
       pyodide.globals.set("x_eval", xEval);
 
-      pyodide.runPython(pyCode + `
+      pyodide.runPython(`
+import numpy as np
+import sympy as sp
+import io, base64
+import matplotlib.pyplot as plt
+
+x = sp.Symbol('x')
 P = lagrange_interpolation_symbolic(A, B)
-y_val = P.subs('x', x_eval)
+y_val = P.subs(x, x_eval)
 
 x_numeric = np.linspace(A[0], A[-1], 400)
-f_numeric = sp.lambdify('x', P, modules=['numpy'])
+f_numeric = sp.lambdify(x, P, modules=['numpy'])
 y_numeric = f_numeric(x_numeric)
 
 plt.figure(figsize=(8,5))
-plt.plot(x_numeric, y_numeric)
+plt.plot(x_numeric, y_numeric, label='Lagrange Polynomial')
 plt.plot(A, B, 'ro', label='Data Points')
 plt.plot(x_eval, y_val, 'go', label=f'P({x_eval:.2f}) = {y_val:.4f}')
 plt.title("Lagrange Interpolation")
@@ -131,47 +128,33 @@ buf = io.BytesIO()
 plt.savefig(buf, format='png')
 buf.seek(0)
 img_data = base64.b64encode(buf.read()).decode('utf-8')
+
 latex_poly = sp.latex(P)
 plain_poly = str(P)
 eval_val = y_val
-
-document.getElementById("output").innerText = output
-document.getElementById("plot").innerHTML = f'<img id="plotImg" src="data:image/png;base64,{img_base64}"/>'
       `);
 
-      const imgData = pyodide.runPython("img_data");
-      const latex = pyodide.runPython("latex_poly");
-      const plain = pyodide.runPython("plain_poly");
-      const y_val = pyodide.runPython("eval_val");
+      const imgData = pyodide.globals.get("img_data");
+      const latex = pyodide.globals.get("latex_poly");
+      const y_val = pyodide.globals.get("eval_val");
 
       document.getElementById("output").innerHTML = `✅ P(${xEval}) = <b>${y_val}</b>`;
       document.getElementById("polyDisplay").innerHTML = `
         <p><strong>Interpolated Polynomial:</strong></p>
         <div style="overflow-x: auto; max-width: 100%;">
-          <div style="min-width: 400px;">
-            <p>\\[ P(x) = ${latex} \\]</p>
-          </div>
+          <p>\\[ P(x) = ${latex} \\]</p>
         </div>
-
       `;
       document.getElementById("plot-wrapper").innerHTML = `
-        <img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" />
+        <img id="plotImg" src="data:image/png;base64,${imgData}" alt="Lagrange Plot" />
       `;
 
       if (window.MathJax) MathJax.typeset();
     }
 
     pyodideReady
-      .then(() => document.getElementById("output").innerText = "Loaded. Ready to run!")
-      .catch(err => document.getElementById("output").innerText = "❌ Failed to load");
-  function downloadPlot() {
-    const img = document.getElementById("plotImg");
-    if (!img) return;
-    const a = document.createElement("a");
-    a.href = img.src;
-    a.download = "curve_fit_plot.png";
-    a.click();
-  }
+      .then(() => document.getElementById("output").innerText = "✅ Ready to run!")
+      .catch(err => document.getElementById("output").innerText = "❌ Pyodide failed to load.");
   </script>
 </body>
 </html>
