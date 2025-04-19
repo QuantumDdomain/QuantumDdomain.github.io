@@ -30,22 +30,24 @@ def approximation(result):
 # General RK4 solver for n variables
 def runge_kutta_multivariable(function_strs, x0, y0_list, X, h):
     x = sp.symbols('x')
-    y_symbols = sp.symbols('y0:'+str(len(function_strs)))
-    funcs = [sp.lambdify((x,)+y_symbols, sp.sympify(s), 'math') for s in function_strs]
-    x_i, y_i = x0, list(y0_list)
+    y_symbols = sp.symbols('y0:' + str(len(function_strs)))
+    funcs = [sp.lambdify((x,) + y_symbols, sp.sympify(s), 'math') for s in function_strs]
+
+    x_i = x0
+    y_i = list(y0_list)
     steps = int((X - x0) / h)
     n_vars = len(funcs)
+
     for _ in range(steps):
-        k = [[0]*n_vars for _ in range(4)]
-        # Stage calculations
-        k[0] = [h * funcs[i](x_i, *y_i) for i in range(n_vars)]
-        for stage in [1,2]:
-            xi = x_i + h*stage/2
-            yi = [y_i[j] + k[stage-1][j]/2 for j in range(n_vars)]
-            k[stage] = [h * funcs[i](xi, *yi) for i in range(n_vars)]
-        xi = x_i + h
-        yi = [y_i[j] + k[2][j] for j in range(n_vars)]
-        k[3] = [h * funcs[i](xi, *yi) for i in range(n_vars)]
-        y_i = [y_i[i] + (k[0][i] + 2*(k[1][i]+k[2][i]) + k[3][i])/6 for i in range(n_vars)]
+        k1 = [h * funcs[i](x_i, *y_i) for i in range(n_vars)]
+        y_temp = [y_i[i] + k1[i] / 2 for i in range(n_vars)]
+        k2 = [h * funcs[i](x_i + h/2, *y_temp) for i in range(n_vars)]
+        y_temp = [y_i[i] + k2[i] / 2 for i in range(n_vars)]
+        k3 = [h * funcs[i](x_i + h/2, *y_temp) for i in range(n_vars)]
+        y_temp = [y_i[i] + k3[i] for i in range(n_vars)]
+        k4 = [h * funcs[i](x_i + h, *y_temp) for i in range(n_vars)]
+
+        y_i = [y_i[i] + (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]) / 6 for i in range(n_vars)]
         x_i += h
+
     return [approximation(val) for val in y_i]
