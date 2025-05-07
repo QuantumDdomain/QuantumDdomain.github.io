@@ -69,8 +69,6 @@
 
     <label for="algorithmSelect">Select Algorithm:</label>
     <select id="algorithmSelect">
-      <option value="bisection">Bisection Method</option>
-      <option value="newton_raphson">Newton-Raphson Method</option>
       <option value="secant">Secant Method</option>
       <option value="fixed_point">Fixed Point Iteration</option> <!-- Added Fixed Point Iteration -->
     </select>
@@ -79,19 +77,6 @@
     <div id="generalFunctionInput">
       <label for="func_expr">Enter Function f(x):</label>
       <input type="text" id="func_expr" placeholder="e.g., x**3 + 4*x**2 - 10" value="x**3 + 4*x**2 - 10">
-    </div>
-
-    <div id="bisectionInputs">
-      <label for="lower">Lower Bound (a):</label>
-      <input type="text" id="lower" value="1">
-
-      <label for="upper">Upper Bound (b):</label>
-      <input type="text" id="upper" value="2">
-    </div>
-
-    <div id="newtonRaphsonInputs" style="display:none;">
-      <label for="x0">Initial Guess (x₀):</label>
-      <input type="text" id="x0" value="1.5">
     </div>
 
     <div id="secantInputs" style="display:none;">
@@ -132,15 +117,7 @@
       
       let code = "", inputCode = "";
 
-      if (algorithm === "bisection") {
-        const a = document.getElementById("lower").value;
-        const b = document.getElementById("upper").value;
-        code = await (await fetch("web_bisection_method.py")).text();
-        inputCode = `result = bisection_method("${expr}", "${a}", "${b}")`;
-      } else if (algorithm === "newton_raphson") {
-        code = await (await fetch("web_newton_raphson.py")).text();
-        inputCode = `result = newton_raphson_method("${expr}", "${x0}")`;
-      } else if (algorithm === "secant") {
+        if (algorithm === "secant") {
         const x1 = document.getElementById("x1").value;
         const response = await fetch("web_secant_method.py");
         const pyCode = await response.text();
@@ -165,8 +142,6 @@
 
     document.getElementById("algorithmSelect").addEventListener("change", function () {
       const algo = this.value;
-      document.getElementById("bisectionInputs").style.display = (algo === "bisection") ? "block" : "none";
-      document.getElementById("newtonRaphsonInputs").style.display = (algo === "newton_raphson") ? "block" : "none";
       document.getElementById("secantInputs").style.display = (algo === "secant") ? "block" : "none";
       document.getElementById("fixedPointInputs").style.display = (algo === "fixed_point") ? "block" : "none";
 

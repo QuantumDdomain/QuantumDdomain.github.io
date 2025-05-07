@@ -73,13 +73,6 @@
     <label for="h">Step Size (h):</label>
     <input type="text" id="h" value="0.1">
 
-    <label for="order">Method Order:</label>
-    <select id="order">
-      <option value="2">2nd Order</option>
-      <option value="3">3rd Order</option>
-      <option value="4" selected>4th Order</option>
-    </select>
-
     <button onclick="compute()">Compute</button>
 
     <div id="output">Output will appear here...</div>
@@ -109,11 +102,10 @@
       const y0 = document.getElementById("y0").value;
       const X = document.getElementById("X").value;
       const h = document.getElementById("h").value;
-      const order = document.getElementById("order").value;
 
       try {
         const result = pyodide.runPython(`
-          runge_kutta_combined(${JSON.stringify(fx)}, ${x0}, ${y0}, ${X}, ${h}, ${order})
+          runge_kutta(${JSON.stringify(fx)}, ${x0}, ${y0}, ${X}, ${h} )
         `);
         document.getElementById("output").innerText = "y(" + X + ") = " + result;
       } catch (err) {

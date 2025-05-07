@@ -54,10 +54,9 @@
     <label for="method">Choose Method:</label>
     <select id="method">
       <option value="" disabled selected>-- Select a method --</option>
-      <option value="euler">Euler Method</option>
       <option value="runge_kutta">Runge-Kutta Method</option>
       <option value="plot">ODE Plotting </option>
-      <option value="multivariable_rk">Multivariable RK4 Solver</option>
+      <option value="multivariable_rk">Multivariable RK Solver</option>
     </select>
 
     <button onclick="redirect()">Proceed</button>
@@ -68,9 +67,7 @@
   <script>
     function redirect() {
       const method = document.getElementById("method").value;
-      if (method === "euler") {
-        window.location.href = "euler.html";
-      } else if (method === "runge_kutta") {
+        if (method === "runge_kutta") {
         window.location.href = "runge_kutta.html";
       } else if (method === "plot") {
         window.location.href = "plot.html";

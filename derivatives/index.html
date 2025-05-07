@@ -135,7 +135,6 @@
     <div id="methodSelect">
       <label for="method">Choose method for first derivative:</label>
       <select id="method">
-        <option value="3">3-Point Formula</option>
         <option value="5">5-Point Formula</option>
         <option value="richardson">Richardson's Extrapolation</option>
       </select>
@@ -185,11 +184,7 @@
 
       try {
         if (derivType === "first") {
-          if (method === "3") {
-            scriptFile = "point_3_first_derivative.py";
-            description = "✅ First Derivative is calculated using 3-Point Formula:";
-            pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
-          } else if (method === "5") {
+          if (method === "5") {
             scriptFile = "point_5_first_derivative.py";
             description = "✅ First Derivative is calculated using 5-Point Formula:";
             pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
