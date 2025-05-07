@@ -37,25 +37,32 @@
       border: 1px solid #ccc;
       margin-top: 20px;
     }
+
+    #error-message {
+      color: red;
+      font-weight: bold;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Runge-Kutta Plot (Pyodide)</h2>
+    <h2>Runge-Kutta Plot</h2>
     
     <div id="status">Loading...</div>
+    <div id="error-message">Error: Division by zero occurred during the calculation.</div>
 
     <label>dy/dx = f(x, y)</label>
-    <input id="fx" value="x + y" />
+    <input id="fx" value="2*(y / x)" />
 
     <label>Initial x₀:</label>
-    <input id="x0" value="0" />
+    <input id="x0" value="1" />
 
     <label>Initial y₀:</label>
-    <input id="y0" value="1" />
+    <input id="y0" value="2" />
 
     <label>Upper limit x:</label>
-    <input id="x" value="5" />
+    <input id="x" value="2" />
 
     <label>Step size h:</label>
     <input id="h" value="0.1" />
@@ -74,9 +81,7 @@
 
     async function main() {
       pyodide = await loadPyodide();
-      await pyodide.loadPackage([
-        "numpy", "sympy", "matplotlib"
-      ]);
+      await pyodide.loadPackage([ "numpy", "sympy", "matplotlib" ]);
       document.getElementById("status").innerText = "Loaded ✅";
       pyodideReady = true;
     }
@@ -88,47 +93,66 @@
       }
 
       const fx = document.getElementById("fx").value;
-      const x0 = document.getElementById("x0").value;
-      const y0 = document.getElementById("y0").value;
-      const x = document.getElementById("x").value;
-      const h = document.getElementById("h").value;
+      const x0 = parseFloat(document.getElementById("x0").value);
+      const y0 = parseFloat(document.getElementById("y0").value);
+      const x = parseFloat(document.getElementById("x").value);
+      const h = parseFloat(document.getElementById("h").value);
+
+      // Check for zero step size
+      if (h === 0) {
+        alert("Step size (h) cannot be zero. Please enter a valid step size.");
+        return;
+      }
 
       // Python code block
       const code = `
 import math
 import matplotlib.pyplot as plt
 
-def runge_kutta(fx, x_0, y_0, x, h):
-    # Convert inputs to proper types
-    x_0 = float(x_0)
-    y_0 = float(y_0)
-    x = float(x)
-    h = float(h)
+# Define inf explicitly
+inf = float('inf')
 
-    # Define the function using eval to allow numeric calculations
-    f = lambda x, y: eval(fx)
+def safe_eval(fx, x_val, y_val):
+    # To avoid division by zero, return 'inf' as a float
+    try:
+        return eval(fx.replace('x', f'({x_val})').replace('y', f'({y_val})'))
+    except ZeroDivisionError:
+        return inf  # Return infinity as a float
 
-    # Initialize values
-    x_i = x_0
-    y_i = y_0
-    x_values = [x_i]
-    y_values = [y_i]
-    n = int((x - x_0) / h)
-
-    # Runge-Kutta iteration
-    for i in range(n):
-        k1 = h * f(x_i, y_i)
-        k2 = h * f(x_i + h / 2, y_i + k1 / 2)
-        k3 = h * f(x_i + h / 2, y_i + k2 / 2)
-        k4 = h * f(x_i + h, y_i + k3)
-        y_i += ((k1 + 2 * (k2 + k3) + k4) / 6)
+def rk_segment(x0, y0, x_end, h, fx):
+    x_vals = [x0]
+    y_vals = [y0]
+    x_i = x0
+    y_i = y0
+    while x_i < x_end:
+        k1 = h * safe_eval(fx, x_i, y_i)
+        k2 = h * safe_eval(fx, x_i + h / 2, y_i + k1 / 2)
+        k3 = h * safe_eval(fx, x_i + h / 2, y_i + k2 / 2)
+        k4 = h * safe_eval(fx, x_i + h, y_i + k3)
+        
+        # If any k value is inf, it indicates an error, so we break the loop
+        if math.isinf(k1) or math.isinf(k2) or math.isinf(k3) or math.isinf(k4):
+            raise ValueError("Division by zero occurred during the Runge-Kutta calculation.")
+        
+        y_i += (k1 + 2 * (k2 + k3) + k4) / 6
         x_i += h
-        x_values.append(x_i)
-        y_values.append(y_i)
-    
+        x_vals.append(x_i)
+        y_vals.append(y_i)
+    return x_vals, y_vals, x_i, y_i
+
+def runge_kutta(fx, x0, y0, x_end, h):
+    # Handling crossing zero logic
+    if (x0 < 0 < x_end) or (x_end < 0 < x0):
+        x1_vals, y1_vals, xm, ym = rk_segment(x0, y0, 0, h if 0 > x0 else -h, fx)
+        x2_vals, y2_vals, _, yf = rk_segment(0, ym, x_end, h if x_end > 0 else -h, fx)
+        x_all = x1_vals + x2_vals[1:]
+        y_all = y1_vals + y2_vals[1:]
+    else:
+        x_all, y_all, _, yf = rk_segment(x0, y0, x_end, h if x_end > x0 else -h, fx)
+
     # Plot the results
     plt.figure()
-    plt.plot(x_values, y_values, label='Runge-Kutta', color='purple')
+    plt.plot(x_all, y_all, label='Runge-Kutta', color='purple')
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title("Runge-Kutta Plot")
@@ -136,17 +160,17 @@ def runge_kutta(fx, x_0, y_0, x, h):
     plt.legend()
     plt.savefig("plot.png")
 
-    return y_i  # Final y value
+    return yf  # Final y value
 
 # Inputs from JavaScript
 fx = """${fx}"""
-x_0 = """${x0}"""
-y_0 = """${y0}"""
-x = """${x}"""
-h = """${h}"""
+x0 = ${x0}
+y0 = ${y0}
+x_end = ${x}
+h = ${h}
 
 # Run the method and return result
-result = runge_kutta(fx, x_0, y_0, x, h)
+result = runge_kutta(fx, x0, y0, x_end, h)
 result
 `;
 
@@ -154,6 +178,7 @@ result
         // Ensure we await the Python code execution
         const result = await pyodide.runPythonAsync(code);
         document.getElementById("result").innerHTML = `<b>y(${x}) = ${result}</b>`;
+        document.getElementById("error-message").style.display = 'none';  // Hide error message
 
         // Retrieve and display the plot
         const png = pyodide.FS.readFile("plot.png", { encoding: "binary" });
@@ -163,7 +188,8 @@ result
 
       } catch (err) {
         console.error("Error running Python:", err);
-        alert("An error occurred while running the Python code.");
+        document.getElementById("error-message").style.display = 'block';  // Show error message
+        document.getElementById("result").innerHTML = "Error in calculation.";
       }
     }
 
