@@ -17,7 +17,6 @@
       background-attachment: fixed;
       color: #33495e;
       line-height: 1.6;
-
       display: flex;
       justify-content: center;
       align-items: center;
@@ -25,7 +24,7 @@
     }
 
     .container {
-      max-width: 700px;
+      max-width: 900px;
       background: rgba(255, 255, 255, 0.6);
       padding: 30px;
       border-radius: 12px;
@@ -38,12 +37,16 @@
       text-align: center;
       color: #2c3e50;
       font-size: 36px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
     }
 
     .section-link {
-      display: block;
-      margin: 15px 0;
       padding: 15px;
       background-color: #ecf0f1;
       border-radius: 8px;
@@ -74,8 +77,8 @@
 
     .sub-links {
       display: none;
-      margin-top: -5px;
-      margin-bottom: 15px;
+      margin: 10px 0;
+      grid-column: span 2;
     }
 
     .sub-links a {
@@ -84,11 +87,12 @@
       color: #2c3e50;
       padding: 10px;
       border-radius: 6px;
-      margin: 5px 20px;
+      margin: 5px auto;
       text-align: center;
       text-decoration: none;
       border: 1px solid #bdc3c7;
       transition: all 0.2s ease;
+      max-width: 80%;
     }
 
     .sub-links a:hover {
@@ -102,12 +106,23 @@
       color: #7f8c8d;
     }
 
+    .symbol {
+      font-weight: bold;
+      font-size: 1.2em;
+      background: linear-gradient(45deg, #e74c3c, #3498db);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
     @media screen and (max-width: 768px) {
       h1 {
         font-size: 28px;
       }
-      .section-link {
-        font-size: 16px;
+
+      .link-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -128,6 +143,32 @@
       font-size: 20px;
       color: #000000;
     }
+
+    .icon {
+      vertical-align: middle;
+      margin-right: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .icon path {
+      fill: none;
+      stroke: #007ACC; /* Default color */
+      stroke-width: 3;
+      transition: all 0.3s ease;
+    }
+
+    .icon:hover path {
+      stroke: url(#gradient); /* Apply gradient on hover */
+    }
+
+    #icon-gradient {
+      display: none;
+    }
+
+    .section-link:hover .icon path {
+      stroke: url(#gradient); /* Apply gradient on hover */
+    }
+
   </style>
 </head>
 <body>
@@ -138,20 +179,57 @@
   <div class="container">
     <h1>Welcome To CrownMath</h1>
 
-    <!-- Root Finder with expandable sub-links -->
-    <div class="section-link" onclick="toggleRootFinder()">Root Finder</div>
-    <div class="sub-links" id="rootSubLinks">
-      <a href="root_finding/">Real Root Finder</a>
-      <a href="complex_root/">Complex Root Finder</a>
-    </div>
+    <div class="link-grid">
+      <!-- Root Finder -->
+      <div class="section-link" onclick="toggleRootFinder()">
+        <span class="symbol">&#8730;</span> Root Finder
+      </div>
+      <div class="sub-links" id="rootSubLinks">
+        <a href="root_finding/">Real Root Finder</a>
+        <a href="complex_root/">Complex Root Finder</a>
+      </div>
 
-    <a class="section-link" href="linear_solver/">Linear Equation Solver</a>
-    <a class="section-link" href="integration/">Integration</a>
-    <a class="section-link" href="derivatives/">Derivative</a>
-    <a class="section-link" href="ode_solver/">Ordinary Differential Equations</a>
-    <a class="section-link" href="interpolation/">Interpolation</a>
-    <a class="section-link" href="matrixlab/">Matrix Tools</a>
-    <a class="section-link" href="curve_fitting/">Curve Fitting</a>  
+      <!-- Other Sections -->
+      <a class="section-link" href="linear_solver/"><span class="symbol">&#x2261;</span> Linear Equation Solver</a>
+      <a class="section-link" href="integration/"><span class="symbol">&#8747;</span> Integration</a>
+      <a class="section-link" href="derivatives/"><span class="symbol">&#8706;</span> Derivative</a>
+      <a class="section-link" href="ode_solver/"><span class="symbol">dy/dx</span> Ordinary Differential Equations</a>
+      <a class="section-link" href="matrixlab/"><span class="symbol">[A]</span> Matrix Tools</a>
+
+      <!-- Interpolation Section with Dynamic Icon Color -->
+      <a class="section-link" href="interpolation/">
+        <svg class="icon" viewBox="0 0 100 50" width="24" height="24">
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color: #e74c3c; stop-opacity: 1" />
+              <stop offset="100%" style="stop-color: #3498db; stop-opacity: 1" />
+            </linearGradient>
+          </defs>
+          <path d="M0,40 Q25,0 50,25 T100,10" />
+        </svg>
+        Interpolation
+      </a>
+
+      <!-- Curve Fitting Section with Dynamic Icon Color -->
+      <a class="section-link" href="curve_fitting/">
+        <svg class="icon" viewBox="0 0 100 50" width="24" height="24">
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color: #e74c3c; stop-opacity: 1" />
+              <stop offset="100%" style="stop-color: #3498db; stop-opacity: 1" />
+            </linearGradient>
+          </defs>
+          <circle cx="10" cy="40" r="3" fill="red" />
+          <circle cx="30" cy="20" r="3" fill="red" />
+          <circle cx="50" cy="25" r="3" fill="red" />
+          <circle cx="70" cy="15" r="3" fill="red" />
+          <circle cx="90" cy="5" r="3" fill="red" />
+          <path d="M10,40 Q30,15 50,25 Q70,30 90,5" stroke="url(#gradient)" fill="none" />
+        </svg>
+        Curve Fitting
+      </a>
+      
+    </div>
 
     <div class="footer">
       <p>&copy; 2025 CrownMath | Designed by Braja Gopal Das</p>
@@ -164,11 +242,10 @@
       subLinks.style.display = subLinks.style.display === "block" ? "none" : "block";
     }
 
-    window.onload = function() {
+    window.onload = function () {
       document.getElementById("loadingScreen").style.display = "none";
     };
 
-    // Register the service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
