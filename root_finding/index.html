@@ -63,7 +63,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Root Finder (Muller Method)</h1>
+    <h1>Root Finder</h1>
 
     <label for="expr">Enter function f(x):</label>
     <input type="text" id="expr" value="sin(x)" />
@@ -88,11 +88,11 @@
         await pyodide.loadPackage(["sympy","numpy"]);
 
         document.getElementById("output").innerText =
-          "✅ Pyodide loaded. Ready to calculate!";
+          "✅ Loaded. Ready to calculate!";
         document.getElementById("output").classList.remove("loading");
       } catch (err) {
         document.getElementById("output").innerText =
-          "❌ Failed to load Pyodide: " + err;
+          "❌ Failed to load : " + err;
         document.getElementById("output").classList.remove("loading");
       }
     }
