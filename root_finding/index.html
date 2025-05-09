@@ -2,160 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Root Finder</title>
-  <script src="../warning.js" defer></script>
+  <title>Root Finding Calculator</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
-      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
       padding: 20px;
     }
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
-      background: white;
+      background: #fff;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select {
+    textarea, input, button, select {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      margin-top: 10px;
       font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
     button {
-      display: block;
-      width: 100%;
-      margin-top: 25px;
-      padding: 12px;
       background-color: #3498db;
       color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
     }
     button:hover {
       background-color: #2980b9;
     }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
     #output {
-      margin-top: 25px;
-      background-color: #ecf0f1;
+      margin-top: 20px;
       padding: 15px;
+      background: #ecf0f1;
       border-radius: 8px;
-      font-size: 16px;
-      white-space: pre-wrap;
+      white-space: pre-line;
+    }
+    .warning {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #output.loading::after {
+      content: ' ⏳';
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Root Finder</h1>
+    <h1>Root Finder (Muller Method)</h1>
 
-    <label for="algorithmSelect">Select Algorithm:</label>
-    <select id="algorithmSelect">
-      <option value="secant">Secant Method</option>
-      <option value="fixed_point">Fixed Point Iteration</option> <!-- Added Fixed Point Iteration -->
-    </select>
+    <label for="expr">Enter function f(x):</label>
+    <input type="text" id="expr" value="sin(x)" />
 
-    <!-- General Function Input for Bisection, Newton-Raphson, and Secant Methods -->
-    <div id="generalFunctionInput">
-      <label for="func_expr">Enter Function f(x):</label>
-      <input type="text" id="func_expr" placeholder="e.g., x**3 + 4*x**2 - 10" value="x**3 + 4*x**2 - 10">
-    </div>
+    <label for="a">Lower bound (a):</label>
+    <input type="text" id="a" value="-10" placeholder="e.g., 0 or pi/4 or sqrt(2)" />
 
-    <div id="secantInputs" style="display:none;">
-      <label for="x0">Initial Guess (x₀):</label>
-      <input type="text" id="x0" value="1.5">
+    <label for="b">Upper bound (b):</label>
+    <input type="text" id="b" value="10" placeholder="e.g., 1 or pi or sqrt(3)" />
 
-      <label for="x1">Second Guess (x₁):</label>
-      <input type="text" id="x1" value="2.5">
-    </div>
+    <button onclick="calculate()">Calculate</button>
 
-    <!-- Fixed Point Iteration Inputs -->
-    <div id="fixedPointInputs" style="display:none;">
-      <label for="fixed_func_expr">Enter Fixed Point Function f(x):</label>
-      <input type="text" id="fixed_func_expr" value="x = 2 + log(x)">
-      
-      <label for="x0_fixed">Initial Guess (x₀):</label>
-      <input type="text" id="x0_fixed" value="1.5">
-    </div>
-
-    <button onclick="loadPyodideAndRun()">Find Root</button>
-
-    <div id="output">Loading...</div>
+    <div id="output" class="loading">Loading...</div>
   </div>
 
   <script>
-    const pyodideReadyPromise = (async () => {
-      const pyodide = await loadPyodide();
-      await pyodide.loadPackage("sympy");
-      return pyodide;
-    })();
+    let pyodide = null;
 
-    async function loadPyodideAndRun() {
-      const pyodide = await pyodideReadyPromise;
-
-      const algorithm = document.getElementById("algorithmSelect").value;
-      const expr = document.getElementById("func_expr").value.trim();
-      const x0 = document.getElementById("x0").value;
-      
-      let code = "", inputCode = "";
-
-        if (algorithm === "secant") {
-        const x1 = document.getElementById("x1").value;
-        const response = await fetch("web_secant_method.py");
-        const pyCode = await response.text();
-        await pyodide.runPythonAsync(pyCode);
-        inputCode = `result = secant_method("${expr}", "${x0}", "${x1}")`;
-      } else if (algorithm === "fixed_point") {
-        const fixedFunc = document.getElementById("fixed_func_expr").value;
-        const x0_fixed = document.getElementById("x0_fixed").value;
-        code = await (await fetch("web_fixed_point.py")).text();
-        inputCode = `result = fixed_point_method("${fixedFunc}", "${x0_fixed}")`;
-      }
-
+    async function initializePyodide() {
       try {
-        await pyodide.runPythonAsync(code + "\n" + inputCode);
-        const result = pyodide.globals.get("result");
-        document.getElementById("output").textContent = `✅ Root: ${result}`;
+        pyodide = await loadPyodide();
+        await pyodide.loadPackage(["sympy","numpy"]);
+
+        document.getElementById("output").innerText =
+          "✅ Pyodide loaded. Ready to calculate!";
+        document.getElementById("output").classList.remove("loading");
       } catch (err) {
-        document.getElementById("output").textContent = "❌ Error: " + err;
-        console.error(err);
+        document.getElementById("output").innerText =
+          "❌ Failed to load Pyodide: " + err;
+        document.getElementById("output").classList.remove("loading");
       }
     }
 
-    document.getElementById("algorithmSelect").addEventListener("change", function () {
-      const algo = this.value;
-      document.getElementById("secantInputs").style.display = (algo === "secant") ? "block" : "none";
-      document.getElementById("fixedPointInputs").style.display = (algo === "fixed_point") ? "block" : "none";
+    initializePyodide();
 
-      // Show/Hide the general function input depending on the selected algorithm
-      if (algo === "fixed_point") {
-        document.getElementById("generalFunctionInput").style.display = "none";
-      } else {
-        document.getElementById("generalFunctionInput").style.display = "block";
+    async function calculate() {
+      document.getElementById("output").innerText = "⏳ Calculating... Please wait.";
+      document.getElementById("output").classList.add("loading");
+
+      const expr = document.getElementById("expr").value;
+      const a = document.getElementById("a").value;
+      const b = document.getElementById("b").value;
+
+      let scriptFile = "web_muller.py";  // Ensure this Python file is present in the same directory
+
+      try {
+        const script = await (await fetch(scriptFile)).text();
+        pyodide.runPython(script); // Load the Python definitions
+
+        let pythonCode = `
+          result = solve_muller(${JSON.stringify(expr)}, ${JSON.stringify(a)}, ${JSON.stringify(b)})
+          result `;
+
+        const result = pyodide.runPython(pythonCode);
+        document.getElementById("output").innerText = "✅ Root Found:" + result;
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ Error: " + err;
       }
-    });
 
-    pyodideReadyPromise
-      .then(() => document.getElementById("output").textContent = "✅ Loaded. Ready to compute! 🚀")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
+      document.getElementById("output").classList.remove("loading");
+    }
   </script>
 </body>
 </html>
