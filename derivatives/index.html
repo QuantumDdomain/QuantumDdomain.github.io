@@ -132,19 +132,6 @@
       <option value="second">Second Derivative</option>
     </select>
 
-    <div id="methodSelect">
-      <label for="method">Choose method for first derivative:</label>
-      <select id="method">
-        <option value="5">5-Point Formula</option>
-        <option value="richardson">Richardson's Extrapolation</option>
-      </select>
-    </div>
-
-    <div id="rvalDiv" style="display: none;">
-      <label for="rval">Enter refinement factor r:</label>
-      <input type="text" id="rval" value="2" step="any" />
-    </div>
-
     <button onclick="calculate()">Calculate</button>
 
     <div id="output">Loading...</div>
@@ -157,57 +144,39 @@
       return pyodide;
     })();
 
-    function toggleMethod() {
-      const derivType = document.getElementById("derivType").value;
-      const methodSelect = document.getElementById("methodSelect");
-      const rvalDiv = document.getElementById("rvalDiv");
-      methodSelect.style.display = derivType === "first" ? "block" : "none";
-
-      const method = document.getElementById("method").value;
-      rvalDiv.style.display = method === "richardson" ? "block" : "none";
-    }
-
-    document.getElementById("method").addEventListener("change", toggleMethod);
 
     async function calculate() {
-      const pyodide = await pyodideReady;
-      const expr = document.getElementById("expr").value;
-      const xval = document.getElementById("xval").value;
-      const hval = document.getElementById("hval").value;
-      const derivType = document.getElementById("derivType").value;
-      const method = document.getElementById("method").value;
-      const rval = document.getElementById("rval").value || "2";
+  try {
+    const pyodide = await pyodideReady;
+    const expr = document.getElementById("expr").value;
+    const xval = document.getElementById("xval").value;
+    const hval = document.getElementById("hval").value;
+    const derivType = document.getElementById("derivType").value;
 
-      let scriptFile = "";
-      let pythonCode = "";
-      let description = "";
+    let scriptFile = "";
+    let pythonCode = "";
+    let description = "";
 
-      try {
-        if (derivType === "first") {
-          if (method === "5") {
-            scriptFile = "point_5_first_derivative.py";
-            description = "✅ First Derivative is calculated using 5-Point Formula:";
-            pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
-          } else {
-            scriptFile = "richardson.py";
-            description = "✅ First Derivative is calculated using Richardson's Extrapolation:";
-            pythonCode = `richardson_extrapolation("${expr}", "${xval}", "${rval}", "${hval}")`;
-          }
-        } else {
-          scriptFile = "second_derivative.py";
-          description = "✅ Second Derivative is calculated as:";
-          pythonCode = `calculate_second_derivative("${expr}", "${xval}", "${hval}")`;
-        }
-
-        const script = await (await fetch(scriptFile)).text();
-        pyodide.runPython(script);
-        const result = pyodide.runPython(pythonCode);
-
-        document.getElementById("output").innerText = `${description}\n${result}`;
-      } catch (err) {
-        document.getElementById("output").innerText = "❌ Error: " + err;
-      }
+    if (derivType === "first") {
+      scriptFile = "point_5_first_derivative.py";
+      description = "✅ First Derivative is calculated using 5-Point Formula:";
+      pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
+    } else {
+      scriptFile = "second_derivative.py";
+      description = "✅ Second Derivative is calculated as:";
+      pythonCode = `calculate_second_derivative("${expr}", "${xval}", "${hval}")`;
     }
+
+    const script = await (await fetch(scriptFile)).text();
+    pyodide.runPython(script);
+    const result = pyodide.runPython(pythonCode);
+
+    document.getElementById("output").innerText = `${description}\n${result}`;
+  } catch (err) {
+    document.getElementById("output").innerText = "❌ Error: " + err;
+  }
+}
+
 
     pyodideReady
       .then(() => document.getElementById("output").textContent = "Loaded. Ready to calculate!")
