@@ -128,13 +128,8 @@
     }
   </script>
     <div id="calculator-container"></div>
-  <script>
-    fetch("/assets/calculator.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("calculator-container").innerHTML = html;
-      })
-      .catch(err => console.error("Failed to load calculator:", err));
-  </script>
+  <iframe src="/assets/calculator.html"
+        style="width: 100%; height: 500px; border: none; margin-top: 20px;">
+</iframe>
 </body>
 </html>
