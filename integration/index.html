@@ -70,13 +70,13 @@
     <input type="text" id="expr" value="sin(x)" />
 
     <label for="a">Lower bound (a):</label>
-    <input type="text" id="a" value="0" step="any" placeholder="e.g., 0 or pi/4 or sqrt(2)" />
+    <input type="text" id="a" value="0" placeholder="e.g., 0 " />
 
     <label for="b">Upper bound (b):</label>
-    <input type="text" id="b" value="1" step="any" placeholder="e.g., 1 or pi or sqrt(3)" />
+    <input type="text" id="b" value="1" placeholder="e.g., 1 " />
 
-    <label for="gaussianN">Enter number of points (n ≥ 1):</label>
-    <input type="number" id="gaussianN" value="2" min="1" step="1" />
+    <label for="h">Step size (h):</label>
+    <input type="text" id="h" value="0.01" placeholder="e.g., 0.01" />
 
     <button onclick="calculate()">Calculate</button>
 
@@ -89,8 +89,8 @@
     async function initializePyodide() {
       try {
         pyodide = await loadPyodide();
-        await pyodide.loadPackage(["sympy", "numpy"]);
-
+        await pyodide.loadPackage(["sympy"]);
+        
         document.getElementById("output").innerText =
           "✅ Loaded. Ready to calculate!";
         document.getElementById("output").classList.remove("loading");
@@ -111,20 +111,18 @@
         const expr = document.getElementById("expr").value;
         const a = document.getElementById("a").value;
         const b = document.getElementById("b").value;
-        const n = parseInt(document.getElementById("gaussianN").value);
+        const h = document.getElementById("h").value || "0.01";
 
-        // Adjust the representation of values
-        let scriptFile = "gaussian.py"; // Ensure the script is in the correct path
-        let pythonCode = `gaussian_quadrature_n_weighting_factor(${JSON.stringify(a)}, ${JSON.stringify(b)}, ${JSON.stringify(expr)}, ${n})`;
-
-        let description = "✅ Integral is calculated using Gaussian Quadrature with n = " + n;
-
+        // Fetch the external Python script (simpson.py)
         try {
-          const script = await (await fetch(scriptFile)).text();
-          pyodide.runPython(script); // Make sure this script exists and works properly
-          const result = pyodide.runPython(pythonCode); // Run the actual calculation
+          const script = await fetch("simpson.py").then(res => res.text());
 
-          document.getElementById("output").innerText = `${description}\n${result}`;
+          // Run the Python script in Pyodide
+          pyodide.runPython(script);
+
+          // Call the simpson function with the input values
+          const result = pyodide.runPython(`simpson("${a}", "${b}", "${expr}", ${h})`);
+          document.getElementById("output").innerText = "✅ Integral value is = " + result;
         } catch (err) {
           document.getElementById("output").innerText = "❌ Error: " + err;
         }
