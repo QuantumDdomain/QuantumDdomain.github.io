@@ -14,10 +14,8 @@ const FILES_TO_CACHE = [
   'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.js',
   'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.data',
   'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.wasm',
-  // Optionally include Matplotlib, SciPy, etc.
   
   // Pre-caching important .html files
-  '/complex_root/index.html',
   '/curve_fitting/index.html',
   '/derivatives/index.html',
   '/integration/index.html',
@@ -30,30 +28,23 @@ const FILES_TO_CACHE = [
   // Pre-caching specific .html files for algorithms
   '/interpolation/lagrange.html',
   '/interpolation/spline.html',
-  '/ode_solver/euler.html',
+  '/ode_solver/plot.html',
+  '/ode_solver/multivariable_rk.html',
   '/ode_solver/runge_kutta.html',
   '/matrixlab/inverse_matrix.html',
   '/matrixlab/matrixeigen.html',
   '/matrixlab/matrix_multiply.html',
   
   // Pre-caching Python files (modify as needed)
-  '/complex_root/secant_complex.py',
-  '/derivatives/point_3_first_derivative.py',
   '/derivatives/point_5_first_derivative.py',
-  '/derivatives/richardson.py',
   '/derivatives/second_derivative.py',
-  '/integration/gaussian.py',
   '/integration/simpson.py',
-  '/integration/trapezoidal.py',
   '/interpolation/web_lagrange_interpolation.py',
   '/interpolation/web_spline_interpolation.py',
   '/linear_solver/web_linear_solver.py',
-  '/ode_solver/euler_method.py',
+  '/ode_solver/runge_kutta_multivariable.py',
   '/ode_solver/runge_kutta_method.py',
-  '/root_finding/web_bisection_method.py',
-  '/root_finding/web_fixed_point.py',
-  '/root_finding/web_newton_raphson.py',
-  '/root_finding/web_secant_method.py'
+  '/root_finding/web_muller.py',
 ];
 
 // During install, open cache and add files
