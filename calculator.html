@@ -1,0 +1,72 @@
+<div id="floating-calculator">
+  <button id="toggleCalc">🧮</button>
+  <div id="calcPanel">
+    <input type="text" id="calcInput" placeholder="Enter expression">
+    <div>
+      <button onclick="insertCalc('π')">π</button>
+      <button onclick="insertCalc('e')">e</button>
+      <button onclick="insertCalc('√(')">√</button>
+      <button onclick="insertCalc('d/dx ')">d/dx</button>
+      <button onclick="evaluateCalc()">=</button>
+    </div>
+    <div id="calcResult"></div>
+  </div>
+</div>
+
+<style>
+#floating-calculator {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  z-index: 9999;
+}
+#toggleCalc {
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 50%;
+}
+#calcPanel {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+#calcPanel input {
+  width: 100%;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+#calcPanel button {
+  margin: 2px;
+  font-size: 16px;
+}
+</style>
+
+<script>
+function insertCalc(symbol) {
+  const input = document.getElementById('calcInput');
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  input.value = input.value.slice(0, start) + symbol + input.value.slice(end);
+  input.focus();
+  input.setSelectionRange(start + symbol.length, start + symbol.length);
+}
+function evaluateCalc() {
+  let expr = document.getElementById("calcInput").value;
+  expr = expr.replace(/π/g, '3.14159265358979');
+  expr = expr.replace(/\be\b/g, '2.71828182845905');
+  expr = expr.replace(/√\(/g, 'Math.sqrt(');
+  try {
+    const result = eval(expr);
+    document.getElementById("calcResult").innerText = "Result: " + result;
+  } catch (err) {
+    document.getElementById("calcResult").innerText = "Error: " + err.message;
+  }
+}
+document.getElementById("toggleCalc").onclick = () => {
+  const panel = document.getElementById("calcPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+};
+</script>
