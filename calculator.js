@@ -14,7 +14,9 @@ function insertToInput(symbol) {
     const insertMap = {
         'π': '3.14159265359',
         'e': '2.71828182846',
-        'd/dx': 'd/dx',
+        'y0': 'y0',
+        'y1': 'y1',
+        'y2': 'y2',
         '√2': '1.41421356237',
         '√3': '1.73205080757',
         '√5': '2.2360679775',
@@ -118,7 +120,7 @@ function showCalculator() {
     calc.appendChild(title);
 
     const constants = [
-        'π', 'e', 'd/dx',
+        'π', 'e', 'y0' , 'y1' , 'y2' ,
         '√2', '√3', '√5', '√7', '√11',
         'ln(2)', 'ln(10)'
     ];

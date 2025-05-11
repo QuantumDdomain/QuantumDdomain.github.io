@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Multivariable RK4 Solver</title>
+  <title>Multivariable ODE Solver</title>
   <script src="../warning.js" defer></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <script src="../calculator.js"></script>
@@ -52,7 +52,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Generalized Multivariable RK4 Solver</h1>
+    <h1>Multivariable ODE Solver</h1>
 
     <label for="varCount">Number of variables (excluding x):</label>
     <input type="number" id="varCount" min="1" />
@@ -84,11 +84,14 @@
       const n = Number(document.getElementById('varCount').value);
       const form = document.getElementById('inputForm');
       form.innerHTML = '';
-      form.insertAdjacentHTML('beforeend', '<label for="x0">x₀:</label><input type="number" id="x0" step="any" />');
+      // Add a heading for initial variables
+      form.insertAdjacentHTML('beforeend', '<h2 style="margin-top: 20px; color: #2c3e50;">Initial Conditions</h2>');
+      form.insertAdjacentHTML('beforeend', '<label for="x0">x_init:</label><input type="number" id="x0" step="any" />');
       for (let i = 0; i < n; i++) {
-        form.insertAdjacentHTML('beforeend', `<label for="y0_${i}">y<sub>${i}</sub>₀:</label><input type="number" id="y0_${i}" step="any" />`);
+        form.insertAdjacentHTML('beforeend', `<label for="y0_${i}">y<sub>${i}</sub>_init:</label><input type="number" id="y0_${i}" step="any" />`);
       }
-      form.insertAdjacentHTML('beforeend', '<label for="X">Target X:</label><input type="number" id="X" step="any" />');
+      form.insertAdjacentHTML('beforeend', '<h2 style="margin-top: 20px; color: #2c3e50;">Evaluation Point (x)</h2>');
+      form.insertAdjacentHTML('beforeend', '<label for="X">x_final:</label><input type="number" id="X" step="any" />');
       form.insertAdjacentHTML('beforeend', '<label for="h">Step size h:</label><input type="number" id="h" step="any" />');
       for (let i = 0; i < n; i++) {
         const vars = Array.from({ length: n }).map((_, j) => `y${j}`).join(', ');

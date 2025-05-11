@@ -54,9 +54,8 @@
     <label for="method">Choose Method:</label>
     <select id="method">
       <option value="" disabled selected>-- Select a method --</option>
-      <option value="runge_kutta">Runge-Kutta Method</option>
-      <option value="plot">ODE Plotting </option>
-      <option value="multivariable_rk">Multivariable RK Solver</option>
+      <option value="multivariable_rk">Multivariable ODE Solver</option>
+      <option value="plot">ODE Graph Plotting </option>
     </select>
 
     <button onclick="redirect()">Proceed</button>
@@ -67,12 +66,10 @@
   <script>
     function redirect() {
       const method = document.getElementById("method").value;
-        if (method === "runge_kutta") {
-        window.location.href = "runge_kutta.html";
+        if (method === "multivariable_rk") {
+        window.location.href = "multivariable_rk.html";
       } else if (method === "plot") {
         window.location.href = "plot.html";
-      } else if (method === "multivariable_rk") {
-        window.location.href = "multivariable_rk.html";
       } else {
         document.getElementById("output").innerText = "⚠️ Please select a method before proceeding.";
       } 
