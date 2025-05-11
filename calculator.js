@@ -104,7 +104,6 @@ function showCalculator() {
     });
 
     const title = document.createElement('div');
-    title.textContent = 'Calculator';
     title.id = 'calculator-header';
     Object.assign(title.style, {
         gridColumn: '1 / -1',
