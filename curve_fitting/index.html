@@ -122,25 +122,31 @@ if model_type in ["power", "exponential"] and (np.any(x_vals <= 0) or np.any(y_v
 
 model = None
 popt = None
+output = ""
 
-if model_type == "linear":
-    model = linear
-    popt, _ = curve_fit(model, x_vals, y_vals)
-    output = "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-elif model_type == "power":
-    model = power
-    popt, _ = curve_fit(model, x_vals, y_vals)
-    output = "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-elif model_type == "exponential":
-    model = exponential
-    popt, _ = curve_fit(model, x_vals, y_vals)
-    output = "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
-elif model_type == "custom":
-    model = custom
-    popt, _ = curve_fit(model, x_vals, y_vals)
-    output = "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
-else:
-    raise ValueError("Unknown model selected.")
+try:
+    if model_type == "linear":
+        model = linear
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "power":
+        model = power
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "exponential":
+        model = exponential
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "custom":
+        model = custom
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
+    else:
+        raise ValueError("Unknown model selected.")
+except Exception as e:
+    document.getElementById("output").innerText = "❌ Curve fitting is not possible.\nPlease check your inputs or model type."
+    document.getElementById("plot").innerHTML = ""
+    raise SystemExit
 
 if x_eval_input.strip() != "":
     try:
@@ -189,8 +195,11 @@ async function runCode() {
   try {
     await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
   } catch (err) {
-    document.getElementById("output").innerText = "❌ Python Error:\n" + err;
-    document.getElementById("plot").innerHTML = "";
+    const msg = err.toString();
+    if (!msg.includes("SystemExit")) {
+      document.getElementById("output").innerText = "❌ Curve fitting is not possible.\nPlease check your inputs.";
+      document.getElementById("plot").innerHTML = "";
+    }
   } finally {
     btn.textContent = "Fit Curve";
     btn.disabled = false;
