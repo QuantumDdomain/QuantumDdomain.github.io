@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrownMath - Advanced Numerical Methods</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #667eea;
+      --secondary-color: #764ba2;
+      --accent-color: #f093fb;
+      --dark-color: #2d3748;
+      --light-color: #f7fafc;
+      --text-primary: #2d3748;
+      --text-secondary: #4a5568;
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --shadow-light: rgba(0, 0, 0, 0.1);
+      --shadow-medium: rgba(0, 0, 0, 0.15);
+      --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Floating particles background */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+      50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+    }
+
+    /* Loading screen */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: white;
+      font-size: 18px;
+      font-weight: 500;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Main container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      color: white;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .crown-icon {
+      font-size: 0.8em;
+      color: #ffd700;
+      filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+      animation: crownGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes crownGlow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+      50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
+
+    .description {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.8);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 30px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      animation: cardSlideIn 0.6s ease-out forwards;
+      opacity: 0;
+      transform: translateY(50px);
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+    .card:nth-child(7) { animation-delay: 0.7s; }
+    .card:nth-child(8) { animation-delay: 0.8s; }
+
+    @keyframes cardSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .card:hover::before {
+      left: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      font-size: 1.5rem;
+      color: white;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .card:nth-child(2n) .card-icon { background: var(--gradient-2); }
+    .card:nth-child(3n) .card-icon { background: var(--gradient-3); }
+
+    .card:hover .card-icon {
+      transform: rotate(10deg) scale(1.1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .card-features {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .card-features li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .card-features li::before {
+      content: '✓';
+      color: #10b981;
+      font-weight: bold;
+      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 50%;
+      font-size: 0.8rem;
+    }
+
+    /* Mathematical symbols styling */
+    .math-symbol {
+      font-family: 'JetBrains Mono', 'Times New Roman', serif;
+      font-size: 1.3em;
+      font-weight: bold;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Custom SVG icons */
+    .custom-icon {
+      width: 24px;
+      height: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover .custom-icon {
+      transform: scale(1.2);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      margin-top: 40px;
+      animation: fadeInUp 1s ease-out 0.5s both;
+    }
+
+    .footer-content {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-link:hover {
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .copyright {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        padding: 25px;
+      }
+
+      .header h1 {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card-header {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        min-height: 70px;
+      }
+
+      .card-icon {
+        margin-right: 15px;
+        margin-bottom: 0;
+        width: 60px;
+        height: 60px;
+        font-size: 1.6rem;
+      }
+    }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --text-primary: #1a202c;
+        --text-secondary: #2d3748;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingScreen">
+    <div class="loader"></div>
+    <div class="loading-text">Initializing MathPhysX...</div>
+  </div>
+
+  <div class="particles" id="particles"></div>
+
+  <div class="container">
+    <header class="header">
+      <h1>
+        <span class="crown-icon">👑</span>
+        <span>MathPhysX</span>
+      </h1>
+      <p class="subtitle">Advanced Numerical Methods & Mathematical Computing</p>
+    </header>
+
+    <div class="cards-grid">
+      <a href="root_finding/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Root Finder</h3>
+        </div>
+        <p class="card-description">
+          Discover roots of equations using advanced numerical methods including Newton-Raphson, Bisection, and Secant methods.
+        </p>
+        <ul class="card-features">
+          <li>Multiple root-finding algorithms</li>
+          <li>Interactive visualizations</li>
+          <li>Convergence analysis</li>
+        </ul>
+      </a>
+
+      <a href="linear_solver/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Linear Systems</h3>
+        </div>
+        <p class="card-description">
+          Solve systems of linear equations using Gaussian elimination, LU decomposition, and iterative methods.
+        </p>
+        <ul class="card-features">
+          <li>Multiple solution methods</li>
+          <li>Step-by-step solutions</li>
+          <li>Error analysis</li>
+        </ul>
+      </a>
+
+      <a href="integration/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Integration</h3>
+        </div>
+        <p class="card-description">
+          Compute definite integrals using numerical integration techniques like Simpson's rule and Gaussian quadrature.
+        </p>
+        <ul class="card-features">
+          <li>Multiple integration rules</li>
+          <li>Adaptive algorithms</li>
+          <li>Error estimation</li>
+        </ul>
+      </a>
+
+      <a href="derivatives/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Derivatives</h3>
+        </div>
+        <p class="card-description">
+          Calculate numerical derivatives using forward, backward, and central difference formulas with various orders.
+        </p>
+        <ul class="card-features">
+          <li>Multiple difference formulas</li>
+          <li>Higher-order derivatives</li>
+          <li>Accuracy optimization</li>
+        </ul>
+      </a>
+
+      <a href="ode_solver/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Differential Equations</h3>
+        </div>
+        <p class="card-description">
+          Solve ordinary differential equations using Euler's method, Runge-Kutta methods, and advanced ODE solvers.
+        </p>
+        <ul class="card-features">
+          <li>Multiple ODE methods</li>
+          <li>System of equations</li>
+          <li>Phase portraits</li>
+        </ul>
+      </a>
+
+      <a href="matrixlab/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+          </div>
+          <h3 class="card-title">Matrix Laboratory</h3>
+        </div>
+        <p class="card-description">
+          Comprehensive matrix operations including eigenvalues, decompositions, and advanced linear algebra computations.
+        </p>
+        <ul class="card-features">
+          <li>Matrix operations</li>
+          <li>Eigenvalue analysis</li>
+          <li>Decomposition methods</li>
+        </ul>
+      </a>
+
+      <a href="interpolation/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg class="custom-icon" viewBox="0 0 100 50">
+              <defs>
+                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
+                  <stop offset="100%" style="stop-color: #764ba2; stop-opacity: 1" />
+                </linearGradient>
+              </defs>
+              <path d="M0,40 Q25,0 50,25 T100,10" stroke="url(#gradient1)" stroke-width="3" fill="none" />
+            </svg>
+          </div>
+          <h3 class="card-title">Interpolation</h3>
+        </div>
+        <p class="card-description">
+          Create smooth functions through data points using Lagrange, Newton, and spline interpolation methods.
+        </p>
+        <ul class="card-features">
+          <li>Polynomial interpolation</li>
+          <li>Spline methods</li>
+          <li>Interactive plotting</li>
+        </ul>
+      </a>
+
+      <a href="curve_fitting/" class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg class="custom-icon" viewBox="0 0 100 50">
+              <defs>
+                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color: #f093fb; stop-opacity: 1" />
+                  <stop offset="100%" style="stop-color: #f5576c; stop-opacity: 1" />
+                </linearGradient>
+              </defs>
+              <circle cx="10" cy="40" r="2" fill="#667eea" />
+              <circle cx="30" cy="20" r="2" fill="#667eea" />
+              <circle cx="50" cy="25" r="2" fill="#667eea" />
+              <circle cx="70" cy="15" r="2" fill="#667eea" />
+              <circle cx="90" cy="5" r="2" fill="#667eea" />
+              <path d="M10,40 Q30,15 50,25 Q70,30 90,5" stroke="url(#gradient2)" stroke-width="2" fill="none" />
+            </svg>
+          </div>
+          <h3 class="card-title">Curve Fitting</h3>
+        </div>
+        <p class="card-description">
+          Fit mathematical models to experimental data using least squares, regression, and optimization techniques.
+        </p>
+        <ul class="card-features">
+          <li>Linear & nonlinear fitting</li>
+          <li>Statistical analysis</li>
+          <li>Model validation</li>
+        </ul>
+      </a>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="#" class="footer-link">
+            <i class="fab fa-github"></i>
+            Source Code
+          </a>
+          <a href="#" class="footer-link">
+            <i class="fas fa-book"></i>
+            Documentation
+          </a>
+          <a href="#" class="footer-link">
+            <i class="fas fa-envelope"></i>
+            Contact
+          </a>
+        </div>
+        <div class="copyright">
+          &copy; 2025 MathPhysX | Designed by Braja Gopal Das | Advanced Numerical Computing Platform
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Loading screen management
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }, 1000);
+    });
+
+    // Create floating particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = window.innerWidth > 768 ? 50 : 25;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (3 + Math.random() * 6) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // Enhanced card interactions
+    document.querySelectorAll('.card').forEach((card, index) => {
+      card.addEventListener('mouseenter', function() {
+        // Add ripple effect on hover
+        const ripple = document.createElement('div');
+        ripple.style.position = 'absolute';
+        ripple.style.borderRadius = '50%';
+        ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+        ripple.style.transform = 'scale(0)';
+        ripple.style.animation = 'ripple 0.6s linear';
+        ripple.style.left = '50%';
+        ripple.style.top = '50%';
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+
+      // Add click animation
+      card.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const clickRipple = document.createElement('div');
+        clickRipple.style.position = 'absolute';
+        clickRipple.style.left = x + 'px';
+        clickRipple.style.top = y + 'px';
+        clickRipple.style.width = '10px';
+        clickRipple.style.height = '10px';
+        clickRipple.style.borderRadius = '50%';
+        clickRipple.style.background = 'rgba(255, 255, 255, 0.5)';
+        clickRipple.style.transform = 'scale(0)';
+        clickRipple.style.animation = 'clickRipple 0.8s ease-out';
+        clickRipple.style.pointerEvents = 'none';
+        
+        this.appendChild(clickRipple);
+        
+        setTimeout(() => {
+          clickRipple.remove();
+        }, 800);
+      });
+    });
+
+    // Parallax effect for particles
+    document.addEventListener('mousemove', (e) => {
+      const particles = document.querySelectorAll('.particle');
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      
+      particles.forEach((particle, index) => {
+        const speed = (index % 5 + 1) * 0.5;
+        const xPos = (x - 0.5) * speed;
+        const yPos = (y - 0.5) * speed;
+        particle.style.transform += ` translate(${xPos}px, ${yPos}px)`;
+      });
+    });
+
+    // Initialize particles after DOM load
+    document.addEventListener('DOMContentLoaded', createParticles);
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes clickRipple {
+        to {
+          transform: scale(20);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope: ', registration.scope);
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed: ', error);
+          });
+      });
+    }
+
+    // Performance optimization: Intersection Observer for animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.card').forEach(card => {
+      observer.observe(card);
+    });
+  </script>
+</body>
+</html>
