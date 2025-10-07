@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Root Finding Calculator</title>
-  <script src="../warning.js" defer></script>
+  <title>Root Finding Calculator (Secant Method)</title> <script src="../warning.js" defer></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <script src="../calculator.js"></script>
   <style>
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
@@ -65,9 +65,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Root Finder</h1>
-
-    <label for="expr">Enter function f(x):</label>
+    <h1>Root Finder</h1> <label for="expr">Enter function f(x):</label>
     <input type="text" id="expr" value="sin(x)" />
 
     <label for="a">Lower bound (a):</label>
@@ -109,18 +107,20 @@
       const a = document.getElementById("a").value;
       const b = document.getElementById("b").value;
 
-      let scriptFile = "web_muller.py";  // Ensure this Python file is present in the same directory
+      // *** MODIFICATION 1: Change script filename ***
+      let scriptFile = "web_secant.py";  
 
       try {
         const script = await (await fetch(scriptFile)).text();
         pyodide.runPython(script); // Load the Python definitions
 
         let pythonCode = `
-          result = solve_muller(${JSON.stringify(expr)}, ${JSON.stringify(a)}, ${JSON.stringify(b)})
+          # *** MODIFICATION 2: Change function call from solve_muller to solve_secant ***
+          result = solve_secant(${JSON.stringify(expr)}, ${JSON.stringify(a)}, ${JSON.stringify(b)})
           result `;
 
         const result = pyodide.runPython(pythonCode);
-        document.getElementById("output").innerText = "✅ Root Found:" + result;
+        document.getElementById("output").innerText = "✅ Root Found:\n" + result; // Added newline for cleaner output
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }
