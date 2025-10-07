@@ -6,8 +6,11 @@ import numpy as np
 def secant_method(a, b, f):
     """
     Implements the Secant Method for a complex function f(z).
+    Initial guesses z0 and z1 are generated randomly within the bounds [a, b] 
+    in both real and imaginary parts.
     """
     rand = Random()
+    # Secant Method requires two initial guesses, z0 and z1
     z0 = complex(rand.uniform(a, b), rand.uniform(a, b))
     z1 = complex(rand.uniform(a, b), rand.uniform(a, b))
     
@@ -24,34 +27,31 @@ def secant_method(a, b, f):
         fz0 = f(z0)
         fz1 = f(z1)
         
+        # Check for near-zero denominator (Secant fails)
         denominator = fz1 - fz0
         if abs(denominator) < eps:
+            # Perturb z1 slightly to escape the zero-denominator condition
             z1 += complex(1e-4, 1e-4)
             continue
         
+        # Secant Method Formula: z_{i+1} = z_i - f(z_i) * (z_i - z_{i-1}) / (f(z_i) - f(z_{i-1}))
         z_new = z1 - fz1 * (z1 - z0) / denominator
         
+        # Check convergence using absolute difference
         if abs(z_new - z1) < tol:
-            if abs(f(z_new)) < tol:
+            if abs(f(z_new)) < tol: # Check if the function value is also small
                  return z_new
             
+        # Update for the next iteration: z_{i-1} -> z_i, z_i -> z_{i+1}
         z0 = z1
         z1 = z_new
 
+    # Return the last calculated point if max iterations reached
     return z1 if abs(f(z1)) < tol else None
 
 
-# --- MODIFIED ROOT FILTERING FUNCTION ---
 def is_new_root(root, found_roots, tol=1e-5):
-    """
-    Checks if the found root is distinct from previously found roots AND
-    if it is not the trivial root (z=0).
-    """
-    # 1. Check if the root is close to the trivial root z=0
-    if abs(root) < tol * 10: # Use a slightly larger tolerance for zero check
-        return False
-        
-    # 2. Check if the root is distinct from previously found roots
+    """Checks if the found root is distinct from previously found roots."""
     return all(abs(root - r) > tol for r in found_roots)
 
 def format_root(root, precision=4):
@@ -59,17 +59,18 @@ def format_root(root, precision=4):
     a = round(root.real, precision)
     b = round(root.imag, precision)
 
-    if abs(b) < 1e-12:
+    if abs(b) < 1e-12:  # If the imaginary part is near zero
         return a
-    elif b >= 0:
+    elif b >= 0:  # If the imaginary part is positive
         return f"{a}+{b}j"
-    else:
+    else:  # If the imaginary part is negative
         return f"{a}{b}j"
 
 # Wrapper function for handling user input and calling the Secant method
 def solve_secant(function_str, a, b):
     x = sp.Symbol('x')
     
+    # Sympy is used here to safely evaluate the input bounds and function string
     try:
         a_float = float(sp.sympify(a).evalf())
         b_float = float(sp.sympify(b).evalf())
@@ -84,16 +85,19 @@ def solve_secant(function_str, a, b):
     
     while attempts < max_attempts:
         try:
+            # We use the Secant method
             root = secant_method(a_float, b_float, func) 
             if root is not None and np.isfinite(root):
                 if is_new_root(root, found_roots):
                     found_roots.append(root)
             attempts += 1
         except Exception as e:
+            # Catching errors during the numerical method itself
+            # print(f"Secant attempt failed: {e}") # for debugging
             attempts += 1
 
     if not found_roots:
-        # If no non-zero roots are found, report that.
-        return ["No non-zero root found within the given bounds and attempts."]
+        return ["No root found within the given bounds and attempts."]
 
+    # Return roots as a list of formatted results
     return [format_root(r) for r in found_roots]
