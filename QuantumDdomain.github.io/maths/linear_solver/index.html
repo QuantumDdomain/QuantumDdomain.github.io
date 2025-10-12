@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Linear Equation Solver</title>
+  <script src="../warning.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <script src="../calculator.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Linear Equation Solver</h1>
+
+    <label for="n">Number of equations (n):</label>
+    <input type="number" id="n" value="3" min="1" />
+
+    <label for="matrixA">Enter Matrix A (one row per line, space-separated):</label>
+    <textarea id="matrixA" rows="4">2 1 1
+3 2 3
+1 4 9</textarea>
+
+    <label for="vectorB">Enter Vector B (space-separated):</label>
+    <input type="text" id="vectorB" value="10 18 16" />
+
+    <button onclick="solveSystem()">Solve</button>
+
+    <div id="output">Loading...</div>
+  </div>
+
+  <script>
+    let pyodideReady = (async () => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage(["numpy", "sympy"]);
+      return pyodide;
+    })();
+
+    async function solveSystem() {
+      const pyodide = await pyodideReady;
+      const n = parseInt(document.getElementById("n").value);
+      const matrixA = document.getElementById("matrixA").value;
+      const vectorB = document.getElementById("vectorB").value;
+
+      try {
+        // Fetch and run the Python script for solving the system
+        const script = await (await fetch("web_linear_solver.py")).text();
+        pyodide.runPython(script);
+
+        pyodide.runPython(`
+import sympy as sp
+
+# Parsing input data
+raw_matrix = """${matrixA}"""
+raw_vector = """${vectorB}"""
+
+# Converting input into symbolic matrix and vector
+A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n')]
+B = [sp.sympify(val) for val in raw_vector.strip().split()]
+
+# Checking matrix dimensions and validity
+if len(A) != ${n} or any(len(row) != ${n} for row in A) or len(B) != ${n}:
+    raise ValueError("Matrix dimensions do not match the number of equations.")
+
+# Solving the system using Gauss-Jordan Elimination
+def gauss_jordan_elimination(A, B):
+    A_aug = [row + [b] for row, b in zip(A, B)]  # Augmented matrix
+    n = len(A)
+
+    # Forward elimination
+    for i in range(n):
+        # Make the diagonal element 1
+        max_row = max(range(i, n), key=lambda r: abs(A_aug[r][i]))
+        A_aug[i], A_aug[max_row] = A_aug[max_row], A_aug[i]
+        pivot = A_aug[i][i]
+        A_aug[i] = [x / pivot for x in A_aug[i]]
+
+        # Eliminate the column entries
+        for j in range(n):
+            if j != i:
+                factor = A_aug[j][i]
+                A_aug[j] = [A_aug[j][k] - factor * A_aug[i][k] for k in range(n + 1)]
+
+    # Extracting the solutions
+    return [row[-1] for row in A_aug]
+
+# Solving the system and storing the result
+result = gauss_jordan_elimination(A, B)
+        `);
+
+        const result = pyodide.globals.get("result").toJs();
+
+        // Displaying the results
+        document.getElementById("output").innerText =
+          "✅ Solution using Gauss-Jordan Elimination:\n" +
+          result.map((val, i) => `x${i + 1} = ${parseFloat(val).toFixed(6)}`).join("\n");
+
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ Error: " + err;
+      }
+    }
+
+    pyodideReady
+      .then(() => document.getElementById("output").textContent = "Loaded. Ready to solve!")
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
+  </script>
+</body>
+</html>

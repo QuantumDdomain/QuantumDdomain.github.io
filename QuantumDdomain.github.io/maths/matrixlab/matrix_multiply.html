@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Matrix Multiplication</title>
+  <script src="../warning.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <script src="../calculator.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Matrix Multiplication Tool</h1>
+  <p>Enter two matrices in Python list format:</p>
+  <label>Matrix A:</label>
+  <textarea id="matrixA">[[1, 2], [3, 4]]</textarea>
+  <label>Matrix B:</label>
+  <textarea id="matrixB">[[5, 6], [7, 8]]</textarea>
+  <button onclick="runCode()">Multiply Matrices</button>
+  <pre id="output">Output will appear here...</pre>
+</div>
+
+<script type="text/python">
+import numpy as np
+from js import document
+
+def matrix_multiply(A, B):
+    A = np.array(A, dtype=float)
+    B = np.array(B, dtype=float)
+
+    rows_1, columns_1 = A.shape
+    rows_2, columns_2 = B.shape
+
+    if columns_1 != rows_2:
+        return "❌ Matrix multiplication is not possible. Columns of A must equal rows of B."
+
+    C = np.zeros((rows_1, columns_2))
+
+    for i in range(rows_1):
+        for j in range(columns_2):
+            total = 0
+            for q in range(columns_1):
+                total += A[i][q] * B[q][j]
+            C[i][j] = total
+
+    return np.round(C, 4)
+
+try:
+    A_input = eval(document.getElementById("matrixA").value)
+    B_input = eval(document.getElementById("matrixB").value)
+
+    if not isinstance(A_input, list) or not isinstance(B_input, list):
+        raise ValueError("Both inputs must be lists of lists.")
+    
+    result = matrix_multiply(A_input, B_input)
+    output = f"Result of A × B:\n{result}"
+except Exception as e:
+    output = f"❌ Error: {e}"
+
+document.getElementById("output").innerText = output
+</script>
+
+<script>
+let pyodide;
+async function runCode() {
+  if (!pyodide) {
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage("numpy");
+    document.getElementById("output").textContent = "✅ Loaded. Ready!";
+  }
+
+  try {
+    await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
+  } catch (err) {
+    document.getElementById("output").innerText = "❌ Python Error:\n" + err;
+  }
+}
+</script>
+
+</body>
+</html>

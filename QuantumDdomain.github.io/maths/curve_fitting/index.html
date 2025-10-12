@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Curve Fitting Tool</title>
+  <script src="../warning.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <script src="../calculator.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    textarea, input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+    #plot {
+      margin-top: 20px;
+      text-align: center;
+      overflow: auto;
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    #plot img {
+      display: block;
+      max-width: unset;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Curve Fitting Tool</h1>
+  <label>Select model type:</label>
+  <select id="modelType">
+    <option value="linear">y = a*x + b</option>
+    <option value="power">y = a*x^b</option>
+    <option value="exponential">y = a * b^x</option>
+    <option value="custom">y = a*x^b + c*x^d</option>
+  </select>
+
+  <label>Enter x values (e.g. [1, 2, 3, 4]):</label>
+  <textarea id="xInput">[1, 2, 3, 4, 5]</textarea>
+
+  <label>Enter y values (e.g. [2.3, 4.1, 5.9, 8.0]):</label>
+  <textarea id="yInput">[2.3, 4.1, 5.9, 8.0, 10.2]</textarea>
+
+  <label>Evaluate y at x =</label>
+  <input id="xEval" type="text" placeholder="Enter a value to evaluate y">
+
+  <button onclick="runCode()" id="runBtn">Fit Curve</button>
+  <button onclick="downloadPlot()">Download Plot</button>
+
+  <pre id="output">Output will appear here...</pre>
+  <div id="plot"></div>
+</div>
+
+<script type="text/python">
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+from js import document
+import io
+import base64
+import ast
+
+def linear(x, a, b): return a * x + b
+def power(x, a, b): return a * np.power(x, b)
+def exponential(x, a, b): return a * np.power(b, x)
+def custom(x, a, b, c, d): return a * np.power(x, b) + c * np.power(x, d)
+
+x_vals = ast.literal_eval(document.getElementById("xInput").value)
+y_vals = ast.literal_eval(document.getElementById("yInput").value)
+model_type = document.getElementById("modelType").value
+x_eval_input = document.getElementById("xEval").value
+
+if not (isinstance(x_vals, list) and isinstance(y_vals, list)):
+    raise ValueError("x and y inputs must be lists.")
+if len(x_vals) != len(y_vals):
+    raise ValueError("x and y must have the same length.")
+
+x_vals = np.array(x_vals, dtype=float)
+y_vals = np.array(y_vals, dtype=float)
+
+if model_type in ["power", "exponential"] and (np.any(x_vals <= 0) or np.any(y_vals <= 0)):
+    raise ValueError("x and y must be positive for power/exponential models.")
+
+model = None
+popt = None
+output = ""
+
+try:
+    if model_type == "linear":
+        model = linear
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "power":
+        model = power
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "exponential":
+        model = exponential
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
+    elif model_type == "custom":
+        model = custom
+        popt, _ = curve_fit(model, x_vals, y_vals)
+        output = "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
+    else:
+        raise ValueError("Unknown model selected.")
+except Exception as e:
+    document.getElementById("output").innerText = "❌ Curve fitting is not possible.\nPlease check your inputs or model type."
+    document.getElementById("plot").innerHTML = ""
+    raise SystemExit
+
+if x_eval_input.strip() != "":
+    try:
+        x_eval_val = float(x_eval_input)
+        y_eval_val = model(x_eval_val, *popt)
+        output += f"\n\nPredicted y at x = {x_eval_val} is: {y_eval_val:.4f}"
+    except Exception as e:
+        output += f"\n\n❌ Error evaluating y at x = {x_eval_input}: {e}"
+
+x_line = np.linspace(min(x_vals), max(x_vals), 100)
+y_line = model(x_line, *popt)
+
+plt.figure(figsize=(6,4))
+plt.scatter(x_vals, y_vals, color='red', label='Data Points')
+plt.plot(x_line, y_line, label='Fitted Curve')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Curve Fitting')
+plt.legend()
+plt.grid(True)
+
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
+img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+buf.close()
+
+document.getElementById("output").innerText = output
+document.getElementById("plot").innerHTML = f'<img id="plotImg" src="data:image/png;base64,{img_base64}"/>'
+</script>
+
+<script>
+let pyodide;
+
+async function runCode() {
+  const btn = document.getElementById("runBtn");
+  btn.textContent = "⏳ Running...";
+  btn.disabled = true;
+
+  if (!pyodide) {
+    document.getElementById("output").textContent = "⏳ Loading...";
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage(["numpy", "scipy", "matplotlib"]);
+  }
+
+  try {
+    await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
+  } catch (err) {
+    const msg = err.toString();
+    if (!msg.includes("SystemExit")) {
+      document.getElementById("output").innerText = "❌ Curve fitting is not possible.\nPlease check your inputs.";
+      document.getElementById("plot").innerHTML = "";
+    }
+  } finally {
+    btn.textContent = "Fit Curve";
+    btn.disabled = false;
+    document.getElementById("output").scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function downloadPlot() {
+  const img = document.getElementById("plotImg");
+  if (!img) return;
+  const a = document.createElement("a");
+  a.href = img.src;
+  a.download = "curve_fit_plot.png";
+  a.click();
+}
+</script>
+
+</body>
+</html>

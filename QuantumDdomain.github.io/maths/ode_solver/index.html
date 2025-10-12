@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Numerical ODE Solver</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Numerical ODE Solver</h1>
+    
+    <label for="method">Choose Method:</label>
+    <select id="method">
+      <option value="" disabled selected>-- Select a method --</option>
+      <option value="multivariable_rk">Multivariable ODE Solver</option>
+      <option value="plot">ODE Graph Plotting </option>
+    </select>
+
+    <button onclick="redirect()">Proceed</button>
+
+    <div id="output">Select a method and click Proceed.</div>
+  </div>
+
+  <script>
+    function redirect() {
+      const method = document.getElementById("method").value;
+        if (method === "multivariable_rk") {
+        window.location.href = "multivariable_rk.html";
+      } else if (method === "plot") {
+        window.location.href = "plot.html";
+      } else {
+        document.getElementById("output").innerText = "⚠️ Please select a method before proceeding.";
+      } 
+
+    }
+  </script>
+</body>
+</html>
