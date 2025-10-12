@@ -107,20 +107,33 @@
       const a = document.getElementById("a").value;
       const b = document.getElementById("b").value;
 
-      // *** MODIFICATION 1: Change script filename ***
-      let scriptFile = "web_secant.py";  
+      const formatterFile = "symbolic_recognition.py";
+      const secantFile = "web_secant.py";
 
       try {
-        const script = await (await fetch(scriptFile)).text();
-        pyodide.runPython(script); // Load the Python definitions
+        // Load modules
+        const formatterCode = await (await fetch(formatterFile)).text();
+        pyodide.FS.writeFile(formatterFile, formatterCode, { encoding: "utf8" });
 
+        const secantCode = await (await fetch(secantFile)).text();
+        pyodide.runPython(secantCode);
+        
         let pythonCode = `
-          # *** MODIFICATION 2: Change function call from solve_muller to solve_secant ***
-          result = solve_secant(${JSON.stringify(expr)}, ${JSON.stringify(a)}, ${JSON.stringify(b)})
-          result `;
+    result = solve_secant(${JSON.stringify(expr)}, ${JSON.stringify(a)}, ${JSON.stringify(b)})
+    result`;
 
         const result = pyodide.runPython(pythonCode);
-        document.getElementById("output").innerText = "✅ Root Found:\n" + result; // Added newline for cleaner output
+        
+        // Better formatting for display
+        const rootsList = result.toJs();
+        if (rootsList.length === 1 && rootsList[0].includes("Error")) {
+          document.getElementById("output").innerText = "❌ " + rootsList[0];
+        } else if (rootsList.length === 1 && rootsList[0].includes("No roots")) {
+          document.getElementById("output").innerText = "⚠️ " + rootsList[0];
+        } else {
+          const formatted = rootsList.map((r, i) => `  ${i + 1}. ${r}`).join('\n');
+          document.getElementById("output").innerText = `✅ Found ${rootsList.length} root(s):\n\n${formatted}`;
+        }
       } catch (err) {
         document.getElementById("output").innerText = "❌ Error: " + err;
       }
