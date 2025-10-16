@@ -2,188 +2,309 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lagrange Interpolation</title>
-  <script src="../warning.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-  <script src="../calculator.js"></script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
   </script>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f0f0f0;
-      padding: 20px;
+      font-family: 'Inter', sans-serif;
     }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    .data-input-row input {
+        min-width: 0;
     }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+    /* Override for larger container */
+    .main-container {
+      max-width: 1400px !important;
     }
-
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
+    /* Larger output box */
     #output {
-      margin-top: 20px;
-      text-align: center;
+      min-height: 500px;
     }
-
-    img {
-      max-width: 100%;
-    }
-
-    #interp-output {
-      margin-top: 15px;
-      font-weight: bold;
+    /* Much larger graph display */
+    #output img {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: 500px !important;
+      height: auto !important;
+      object-fit: contain;
     }
   </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
 </head>
-<body>
-  <div class="container">
-    <h2>Lagrange Interpolation</h2>
+<body class="p-4 sm:p-8">
+  <div class="container mx-auto p-8 bg-white rounded-xl shadow-2xl main-container">
+    <h2 class="text-4xl font-bold text-gray-800 mb-8 border-b-2 pb-4 text-center">
+      Lagrange Interpolation
+    </h2>
 
-    <label for="xValues">X values (comma separated):</label>
-    <input type="text" id="xValues" value="1.2,1.3,1.4,1.5" />
+    <div class="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-8">
+      <!-- Left Column: Input Section -->
+      <div class="space-y-6 lg:max-w-[500px]">
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">📊 Data Points</h3>
+          
+          <div id="data-input-container" class="space-y-3 mb-6">
+            <div class="grid grid-cols-2 gap-4 text-center font-semibold text-gray-600 mb-2">
+              <span>X Value</span>
+              <span>Y Value</span>
+            </div>
+          </div>
 
-    <label for="yValues">Y values (comma separated):</label>
-    <input type="text" id="yValues" value="1.063,1.091,1.119,1.145" />
+          <button id="addRowBtn" onclick="addRow()" 
+              class="w-full py-3 bg-indigo-100 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-200 transition duration-150 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 text-lg">
+              ➕ Add Data Point
+          </button>
 
-    <button onclick="runLagrange()">Generate Lagrange Polynomial</button>
+          <button onclick="runLagrange()"
+              class="w-full py-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-lg mb-4 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 text-lg">
+              🚀 Generate Lagrange Polynomial
+          </button>
+        </div>
 
-    <div id="output">Loading...</div>
+        <div class="bg-gradient-to-r from-teal-50 to-cyan-50 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">🔍 Evaluate P(x)</h3>
+          
+          <label for="xInterp" class="block text-base font-medium text-gray-700 mb-3">Enter X value to evaluate:</label>
+          <input type="number" id="xInterp" value="1.35" step="any" 
+              class="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 mb-4 text-lg" />
+          
+          <button onclick="getInterpolatedValue()"
+              class="w-full py-4 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition duration-150 shadow-lg focus:outline-none focus:ring-4 focus:ring-teal-500 focus:ring-opacity-50 text-lg">
+              ✨ Calculate P(x)
+          </button>
 
-    <label for="xInterp">Enter X value to evaluate P(x):</label>
-    <input type="text" id="xInterp" value="1.35" />
-    <button onclick="getInterpolatedValue()">Get P(x)</button>
+          <div id="interp-output" class="mt-4 p-4 text-center bg-teal-50 border-2 border-teal-200 text-teal-800 font-semibold rounded-lg text-lg min-h-[60px] flex items-center justify-center"></div>
+        </div>
+      </div>
 
-    <div id="interp-output"></div>
+    </div>
+
+    <!-- Right Column: Results Section -->
+    <div class="space-y-6">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-lg">
+        <h3 class="text-2xl font-bold text-gray-700 mb-6 text-center">📈 Interpolation Results</h3>
+        
+        <div id="output" class="p-8 bg-white border-2 border-gray-200 rounded-lg text-gray-700 text-center transition-all duration-300 shadow-inner">
+            <div class="text-center text-gray-500 text-lg">Loading Pyodide...</div>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <script>
     let pyodideReady = (async () => {
-      let pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "sympy"]);
-      await pyodide.loadPackage("micropip");
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage(["numpy", "sympy", "matplotlib"]); 
+      
       await pyodide.runPythonAsync(`
-        import micropip
-        await micropip.install("matplotlib")
+        import sympy as sp
+        from sympy.abc import x
+        
+        def lagrange_interpolation_symbolic(A, B):
+            if not A or len(A) != len(B):
+                return x*0
+
+            n = len(A)
+            polynomial = 0
+            
+            for i in range(n):
+                L_i = 1
+                for j in range(n):
+                    if i != j:
+                        L_i *= (x - A[j]) / (A[i] - A[j])
+                polynomial += B[i] * L_i
+            return sp.simplify(polynomial)
       `);
       return pyodide;
     })();
 
+    let dataPoints = [
+        { x: 1.2, y: 1.063 },
+        { x: 1.3, y: 1.091 },
+        { x: 1.4, y: 1.119 },
+        { x: 1.5, y: 1.145 }
+    ];
+
+    function renderInputs() {
+        const container = document.getElementById("data-input-container");
+        let html = '<div class="grid grid-cols-2 gap-4 text-center font-semibold text-gray-600 mb-2"><span>X Value</span><span>Y Value</span></div>';
+
+        dataPoints.forEach((point, index) => {
+            html += `
+                <div class="data-input-row grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                    <input type="number" step="any" class="x-input p-3 border-2 border-gray-300 rounded-lg text-base focus:ring-indigo-500 focus:border-indigo-500" placeholder="x${index}" value="${point.x}" onchange="updateDataPoint(${index}, 'x', this.value)">
+                    <input type="number" step="any" class="y-input p-3 border-2 border-gray-300 rounded-lg text-base focus:ring-indigo-500 focus:border-indigo-500" placeholder="y${index}" value="${point.y}" onchange="updateDataPoint(${index}, 'y', this.value)">
+                    <button onclick="removeRow(${index})" class="text-red-500 p-2 hover:text-red-700 text-2xl leading-none transition duration-150 font-bold">
+                        ×
+                    </button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    function updateDataPoint(index, axis, value) {
+        const numValue = value === "" ? NaN : parseFloat(value);
+        if (axis === 'x') {
+            dataPoints[index].x = numValue;
+        } else {
+            dataPoints[index].y = numValue;
+        }
+    }
+
+    function addRow() {
+        dataPoints.push({ x: NaN, y: NaN });
+        renderInputs();
+    }
+
+    function removeRow(index) {
+        if (dataPoints.length > 2) {
+            dataPoints.splice(index, 1);
+            renderInputs();
+        } else {
+            document.getElementById("output").innerHTML = '<p class="text-red-600 text-lg">❌ You need at least two data points for interpolation.</p>';
+        }
+    }
+    
     async function runLagrange() {
       const pyodide = await pyodideReady;
-      const xRaw = document.getElementById("xValues").value;
-      const yRaw = document.getElementById("yValues").value;
-
-      const xArray = xRaw.split(',').map(Number);
-      const yArray = yRaw.split(',').map(Number);
-
-      if (xArray.length !== yArray.length) {
-        document.getElementById("output").innerText = "❌ X and Y arrays must be the same length.";
+      
+      const validPoints = dataPoints.filter(p => !isNaN(p.x) && !isNaN(p.y));
+      
+      if (validPoints.length < 2) {
+        document.getElementById("output").innerHTML = '<p class="text-red-600 text-lg">❌ Please enter at least two valid (numeric) X and Y pairs.</p>';
         return;
       }
+      
+      const xArray = validPoints.map(p => p.x);
+      const yArray = validPoints.map(p => p.y);
 
-      const pyCode = await fetch('web_lagrange_interpolation.py').then(res => res.text());
+      document.getElementById("output").innerHTML = '<div class="text-center text-indigo-600 font-medium text-lg py-8">⏳ Calculating polynomial...</div>';
 
-      pyodide.globals.set("A", pyodide.toPy(xArray));
-      pyodide.globals.set("B", pyodide.toPy(yArray));
-
-      await pyodide.runPythonAsync(pyCode + `  
-from pyodide.ffi import to_js
+      try {
+        pyodide.globals.set("A", pyodide.toPy(xArray));
+        pyodide.globals.set("B", pyodide.toPy(yArray));
+        
+        await pyodide.runPythonAsync(`  
 import numpy as np
 import io, base64
 import matplotlib.pyplot as plt
+import sympy as sp
+from sympy.abc import x
+from pyodide.ffi import to_js
 
 polynomial = lagrange_interpolation_symbolic(A, B)
-x_val = (A[0] + A[-1]) / 2
-y_val = polynomial.subs('x', x_val)
 
-# Numeric plotting
-f_numeric = sp.lambdify('x', polynomial, modules=['numpy'])
-x_numeric = np.linspace(A[0], A[-1], 400)
-y_numeric = f_numeric(x_numeric)
+if len(A) > 1:
+    min_x = min(A)
+    max_x = max(A)
+    x_range = max_x - min_x
+    
+    x_val = (min_x + max_x) / 2
+    y_val = polynomial.subs(x, x_val)
 
-plt.clf()
-plt.plot(x_numeric, y_numeric, label='Interpolated Curve', color='green')
-plt.scatter(A, B, color='blue', label='Given Points', zorder=5)  # Changed to blue for better visibility
-plt.plot(x_val, y_val, 'ro', label=f'P({x_val:.2f}) = {y_val:.4f}')
-plt.title("Lagrange Interpolation")
-plt.xlabel("x")
-plt.ylabel("P(x)")
-plt.grid(True)
-plt.legend(fontsize=8)
+    x_start = min_x - x_range * 0.1
+    x_end = max_x + x_range * 0.1
+    
+    f_numeric = sp.lambdify(x, polynomial, modules=['numpy'])
+    x_numeric = np.linspace(x_start, x_end, 400)
+    y_numeric = f_numeric(x_numeric)
 
-buf = io.BytesIO()
-plt.savefig(buf, format='png')
-buf.seek(0)
-img_data = base64.b64encode(buf.read()).decode('utf-8')
+    plt.clf()
+    plt.figure(figsize=(16, 10))
+    plt.plot(x_numeric, y_numeric, label='Interpolated Curve', color='#34d399', linewidth=4)
+    plt.scatter(A, B, color='#4f46e5', s=200, label='Given Points', zorder=5, edgecolors='white', linewidths=2)
+    plt.plot(x_val, y_val, 'ro', markersize=15, label=f'P({x_val:.2f}) = {y_val:.4f}', markeredgecolor='white', markeredgewidth=2)
+    plt.title("Lagrange Interpolation", fontsize=24, fontweight='bold', pad=20)
+    plt.xlabel("x", fontsize=18, fontweight='bold')
+    plt.ylabel("P(x)", fontsize=18, fontweight='bold')
+    plt.grid(True, linestyle='--', alpha=0.6, linewidth=1.5)
+    plt.legend(fontsize=14, loc='best', framealpha=0.9)
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.tight_layout()
 
-latex_poly = sp.latex(polynomial)
-plain_poly = str(polynomial)
-      `);
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=200)
+    plt.close()
+    buf.seek(0)
+    img_data = base64.b64encode(buf.read()).decode('utf-8')
+    
+    latex_poly = sp.latex(polynomial)
+else:
+    img_data = ""
+    latex_poly = "Requires at least 2 points."
+        `);
 
-      const imgData = pyodide.globals.get("img_data");
-      const latexPoly = pyodide.globals.get("latex_poly");
-      const plainPoly = pyodide.globals.get("plain_poly");
+        const imgData = pyodide.globals.get("img_data");
+        const latexPoly = pyodide.globals.get("latex_poly");
 
-      document.getElementById("output").innerHTML = `
-        <p><strong>Interpolated Polynomial:</strong></p>
-        <div style="overflow-x: auto; max-width: 100%;">
-          <div style="min-width: 400px;">
-            <p>\\[ P(x) = ${latexPoly} \\]</p>
+        document.getElementById("output").innerHTML = `
+          <p class="text-left font-bold text-xl mb-4 text-gray-800">📐 Interpolated Polynomial P(x):</p>
+          <div class="overflow-x-auto p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-300 rounded-lg shadow-inner mb-6">
+            <div class="min-w-full">
+              <p class="text-left text-xl py-2">\\[ P(x) = ${latexPoly} \\]</p>
+            </div>
           </div>
-        </div>
-        <img src="data:image/png;base64,${imgData}" alt="Plot" />
-      `;
+          ${imgData ? `<div class="bg-white p-4 rounded-lg shadow-lg"><img src="data:image/png;base64,${imgData}" alt="Lagrange Plot" class="rounded-lg w-full" /></div>` : ''}
+        `;
 
-      // Re-render LaTeX using MathJax (local)
-      if (window.MathJax) MathJax.typeset();
+        if (window.MathJax) MathJax.typeset();
+
+      } catch (error) {
+          console.error("Pyodide execution failed:", error);
+          document.getElementById("output").innerHTML = `<p class="text-red-600 text-lg">❌ Error in calculation: ${error.message || 'Check your input data.'}</p>`;
+      }
     }
 
     async function getInterpolatedValue() {
       const pyodide = await pyodideReady;
       const x = parseFloat(document.getElementById("xInterp").value);
-
-      await pyodide.runPythonAsync(`
+      
+      if (isNaN(x)) {
+         document.getElementById("interp-output").innerText = '❌ Please enter a numeric X value.';
+         return;
+      }
+      
+      try {
+          await pyodide.runPythonAsync(`
 x_query = ${x}
-eval_value = polynomial.subs('x', x_query)
-      `);
+if 'polynomial' in locals() or 'polynomial' in globals():
+    eval_value = polynomial.subs('x', x_query)
+else:
+    eval_value = "Run interpolation first"
+          `);
+          
+          const val = pyodide.globals.get("eval_value");
+          document.getElementById("interp-output").innerText = `✅ P(${x}) ≈ ${parseFloat(val).toFixed(6)}`;
 
-      const val = pyodide.globals.get("eval_value");
-      document.getElementById("interp-output").innerText = `✅ P(${x}) = ${val}`;
+      } catch (error) {
+          document.getElementById("interp-output").innerText = '❌ Error: Run the interpolation first.';
+      }
     }
 
     pyodideReady.then(() => {
-      document.getElementById("output").innerText = "✅ Loaded. Ready to run!";
-    }).catch(() => {
-      document.getElementById("output").innerText = "❌ Failed to load ";
+      document.getElementById("output").innerHTML = "<div class='text-green-600 text-lg font-semibold py-4'>✅ Ready! Enter your data points and click Generate.</div>";
+      renderInputs();
+    }).catch((e) => {
+      document.getElementById("output").innerHTML = "<div class='text-red-600 text-lg'>❌ Failed to load Pyodide. Check console for details.</div>";
+      console.error(e);
     });
   </script>
-
-  <!-- MathJax (local version) -->
-  <script type="text/javascript" async src="node_modules/mathjax/es5/tex-mml-chtml.js"></script>
-
 </body>
 </html>
