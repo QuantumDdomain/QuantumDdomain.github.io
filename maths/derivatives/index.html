@@ -9,172 +9,644 @@
   <script src="../../service-worker-setup.js"></script>
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
-  <style>
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      width: 100%; /* Ensure full-width container */
+<style>
+    /* Define CSS Variables for a Dark/Vibrant Theme */
+    :root {
+      --dark-bg: #1a1a2e; /* Deep purple/blue background */
+      --darker-bg: #161625;
+      --light-text: #e0e0e0; /* Light text for dark background */
+      --dark-color: #1a1a2e; /* Used for input text */
+      --accent-color: #00bcd4; /* Cyan accent for focus/borders */
+      --glass-bg: rgba(255, 255, 255, 0.05); /* Very light glass background */
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple/Blue gradient */
+      --gradient-2: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); /* Red/Pink gradient for button */
     }
-
-    h1 {
-      text-align: center;
-      color: #2c3e50;
+    /* Keyframe for particle animation (assuming you have one defined elsewhere, if not, this is a placeholder) */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-
-    label {
-      font-size: 16px;
-      color: #2c3e50;
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    input, textarea, select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      margin-bottom: 15px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+    @keyframes clickRipple {
+      to { transform: scale(2.5); opacity: 0; }
     }
-
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
-      border-radius: 8px;
-      white-space: pre-line;
-      word-wrap: break-word; /* Ensures text wraps inside the container */
-      overflow-wrap: break-word;
-      width: 100%; /* Ensure the output container does not overflow */
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 14px;
-      color: #7f8c8d;
-    }
-
-    /* Mobile responsiveness */
-    @media screen and (max-width: 768px) {
-      h1 {
-        font-size: 28px;
-      }
-      label, input, select, button {
-        font-size: 14px;
-      }
-    }
-
-    /* Loading screen */
-    #loadingScreen {
+    
+    /* Adding styles for the particles mentioned in the JS */
+    .particles {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+      pointer-events: none;
+      z-index: -1;
     }
 
-    #loadingScreen div {
+    .particle {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        animation: floatParticle linear infinite;
+    }
+    
+    @keyframes floatParticle {
+        0% { transform: translateY(0) scale(1); opacity: 0.7; }
+        50% { transform: translateY(-20px) scale(1.2); opacity: 0.9; }
+        100% { transform: translateY(0) scale(1); opacity: 0.7; }
+    }
+    /* End of particle styles */
+
+    .calc-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .calc-card {
+      /* Keep glass effect, now over a dark background */
+      background: var(--glass-bg); 
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      padding: 50px 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); /* Stronger shadow */
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .calc-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      /* Changed to light text */
+      color: var(--light-text); 
+      margin-bottom: 50px;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); /* Cyan glow shadow */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .derivative-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin: 50px 0;
+      flex-wrap: wrap;
+      padding: 40px 30px;
+      /* Updated background for contrast */
+      background: rgba(0, 0, 0, 0.2); 
+      backdrop-filter: blur(5px);
+      border-radius: 20px;
+      border: 2px solid var(--accent-color); /* Cyan border */
+    }
+
+    .derivative-operator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 28px;
+      font-weight: 600;
+      /* Changed to light text */
+      color: var(--light-text); 
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    .derivative-d {
+      font-style: italic;
+      font-size: 32px;
+    }
+
+    .derivative-line {
+      width: 100%;
+      height: 3px;
+      /* Changed line color to light */
+      background: var(--light-text); 
+      border-radius: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .derivative-dx {
+      font-style: italic;
+      font-size: 28px;
+      display: flex;
+      gap: 2px;
+    }
+
+    .derivative-exponent {
+      font-size: 18px;
+      vertical-align: super;
+      font-weight: 700;
+    }
+
+    /* Inputs - Kept them light so text is readable (dark text on light input) */
+    .function-input {
+      padding: 18px 25px;
+      font-size: 28px;
+      font-weight: 500;
+      border: 3px solid rgba(55, 44, 44, 0.8);
+      border-radius: 15px;
+      text-align: center;
+      min-width: 220px;
+      /* Kept background light, changed text color to dark */
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--dark-color); 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .function-input:focus {
+      outline: none;
+      /* Accent color for focus */
+      border-color: var(--accent-color); 
+      background: white;
+      box-shadow: 0 8px 25px rgba(0, 188, 212, 0.5); /* Cyan focus glow */
+      transform: translateY(-3px);
+    }
+
+    .at-point {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 24px;
+      /* Changed to light text */
+      color: var(--light-text); 
+      font-weight: 600;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Inputs - Kept them light so text is readable (dark text on light input) */
+    .at-point-input {
+      width: 120px;
+      padding: 14px 18px;
+      font-size: 22px;
+      font-weight: 600;
+      /* Changed border to light for visibility */
+      border: 3px solid rgba(255, 255, 255, 0.8); 
+      border-radius: 12px;
+      text-align: center;
+      /* Kept background light, changed text color to dark */
+      background: rgba(255, 255, 255, 0.95); 
+      color: var(--dark-color); 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .at-point-input:focus {
+      outline: none;
+      /* Accent color for focus */
+      border-color: var(--accent-color); 
+      background: white;
+      box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4); /* Cyan focus glow */
+      transform: scale(1.08);
+    }
+
+    .settings-panel {
+      /* Darker glass background for settings */
+      background: rgba(255, 255, 255, 0.1); 
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      margin-top: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .settings-header {
       font-size: 20px;
-      color: #3498db;
+      font-weight: 600;
+      /* Changed to light text */
+      color: var(--light-text); 
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      font-size: 18px;
+      /* Changed to light text */
+      color: var(--light-text); 
+      font-weight: 500;
+      min-width: 180px;
+    }
+
+    /* Inputs within settings panel - kept light background with dark text */
+    .input-group input,
+    .input-group select {
+      flex: 1;
+      padding: 14px 18px;
+      font-size: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      /* Kept background light, changed text color to dark */
+      background: rgba(255, 255, 255, 0.9); 
+      color: var(--dark-color);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group select {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      outline: none;
+      /* Accent color for focus */
+      border-color: var(--accent-color); 
+      background: white;
+      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3); /* Cyan focus glow */
+    }
+
+    .calculate-button {
+      width: 100%;
+      padding: 20px;
+      margin-top: 40px;
+      font-size: 22px;
+      font-weight: 700;
+      /* Using the new red/pink gradient */
+      background: var(--gradient-2); 
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      /* Red/Pink shadow */
+      box-shadow: 0 8px 25px rgba(255, 75, 43, 0.4); 
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calculate-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s;
+    }
+
+    .calculate-button:hover::before {
+      left: 100%;
+    }
+
+    .calculate-button:hover {
+      transform: translateY(-3px);
+      /* Stronger Red/Pink shadow */
+      box-shadow: 0 12px 35px rgba(255, 75, 43, 0.6); 
+    }
+
+    .calculate-button:active {
+      transform: translateY(0);
+    }
+
+    .calculate-button:disabled {
+      background: linear-gradient(135deg, #4a5568, #2d3748); /* Darker disabled state */
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .result-display {
+      margin-top: 40px;
+      padding: 30px;
+      /* Light glass background for results */
+      background: rgba(255, 255, 255, 0.15); 
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      /* Accent color for border */
+      border-left: 6px solid var(--accent-color); 
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      /* Ensure default text is light/readable */
+      color: var(--light-text);
+      transition: all 0.3s ease;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-line;
+    }
+
+    .result-success {
+      color: #48bb78; /* Green for success */
+      font-weight: 700;
+      font-size: 22px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .result-error {
+      color: #fc8181; /* Red for error */
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .result-loading {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    .info-badge {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 15px;
+      margin-top: 25px;
+      padding: 12px;
+      /* Subtle dark glass background */
+      background: rgba(0, 0, 0, 0.2); 
+      border-radius: 10px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    /* Media Queries (Updated for new color scheme) */
+    @media (max-width: 768px) {
+      .calc-card {
+        padding: 30px 20px;
+      }
+
+      .calc-title {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .derivative-display {
+        padding: 25px 15px;
+        gap: 15px;
+      }
+
+      .derivative-operator {
+        font-size: 24px;
+      }
+
+      .derivative-d {
+        font-size: 28px;
+      }
+
+      .derivative-dx {
+        font-size: 24px;
+      }
+
+      .function-input {
+        font-size: 24px;
+        min-width: 180px;
+        padding: 15px 20px;
+      }
+
+      .at-point {
+        font-size: 20px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .at-point-input {
+        width: 100px;
+        font-size: 20px;
+      }
+
+      .input-group {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .input-group label {
+        min-width: auto;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .derivative-operator {
+        font-size: 20px;
+      }
+
+      .derivative-d {
+        font-size: 24px;
+      }
+
+      .derivative-dx {
+        font-size: 20px;
+      }
+
+      .function-input {
+        font-size: 20px;
+        min-width: 150px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Loading Screen -->
-  <div id="loadingScreen">
-    <div>Loading...</div>
-  </div>
+  <!-- Particles background -->
+  <div class="particles" id="particles"></div>
 
-  <div class="container">
-    <h1>Derivative Calculator</h1>
+  <div class="calc-container">
+    <div class="calc-card">
+      <h1 class="calc-title">
+        <span>d/dx</span>
+        <span>Derivative Calculator</span>
+      </h1>
 
-    <label for="expr">Enter function f(x):</label>
-    <input type="text" id="expr" value="sin(x)" />
+      <div class="derivative-display">
+        <div class="derivative-operator" id="derivativeOperator">
+          <span class="derivative-d">d</span>
+          <div class="derivative-line"></div>
+          <span class="derivative-dx">
+            <span>d</span><span>x</span>
+          </span>
+        </div>
+        
+        <input type="text" class="function-input" id="function" value="sin(x)" placeholder="f(x)" title="Function to differentiate">
+        
+        <div class="at-point">
+          <span>at x =</span>
+          <input type="text" class="at-point-input" id="xValue" value="0.5" placeholder="x₀" title="Point to evaluate">
+        </div>
+      </div>
 
-    <label for="xval">Value of x:</label>
-    <input type="text" id="xval" value="0.5" step="any" />
+      <div class="settings-panel">
+        <div class="settings-header">
+          <span>⚙️</span>
+          <span>Calculation Settings</span>
+        </div>
+        <div class="input-group">
+          <label for="derivType">Derivative Type:</label>
+          <select id="derivType" onchange="updateDerivativeOperator()">
+            <option value="first">First Derivative (d/dx)</option>
+            <option value="second">Second Derivative (d²/dx²)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="stepSize">Step size (h):</label>
+          <input type="text" id="stepSize" value="0.01" placeholder="e.g., 0.01">
+        </div>
+      </div>
 
-    <label for="hval">Step size h:</label>
-    <input type="text" id="hval" value="0.01" step="any" />
+      <button class="calculate-button" onclick="calculate()" id="calcBtn" disabled>
+        Calculate Derivative
+      </button>
 
-    <label for="derivType">Choose derivative type:</label>
-    <select id="derivType" onchange="toggleMethod()">
-      <option value="first">First Derivative</option>
-      <option value="second">Second Derivative</option>
-    </select>
+      <div id="output" class="result-display result-loading">
+        <span>Loading Pyodide environment...</span>
+        <div class="spinner"></div>
+      </div>
 
-    <button onclick="calculate()">Calculate</button>
-
-    <div id="output">Loading...</div>
+      <div class="info-badge">
+        📊 Numerical differentiation • Enter function in terms of x
+      </div>
+    </div>
   </div>
 
   <script>
+    // Create floating particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 30;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    createParticles();
+
+    // Update derivative operator display
+    function updateDerivativeOperator() {
+      const derivType = document.getElementById('derivType').value;
+      const operatorDiv = document.getElementById('derivativeOperator');
+      
+      if (derivType === 'first') {
+        operatorDiv.innerHTML = `
+          <span class="derivative-d">d</span>
+          <div class="derivative-line"></div>
+          <span class="derivative-dx">
+            <span>d</span><span>x</span>
+          </span>
+        `;
+      } else {
+        operatorDiv.innerHTML = `
+          <span class="derivative-d">d<span class="derivative-exponent">2</span></span>
+          <div class="derivative-line"></div>
+          <span class="derivative-dx">
+            <span>d</span><span>x</span><span class="derivative-exponent">2</span>
+          </span>
+        `;
+      }
+    }
+
     let pyodideReady = (async () => {
       const pyodide = await loadPyodide();
       await pyodide.loadPackage("sympy");
       return pyodide;
     })();
 
+    pyodideReady
+      .then(() => {
+        document.getElementById("output").innerHTML = '<span class="result-success">✅ Ready to calculate!</span>';
+        document.getElementById("calcBtn").disabled = false;
+      })
+      .catch(err => {
+        document.getElementById("output").innerHTML = '<span class="result-error">❌ Failed to load: ' + err + '</span>';
+      });
 
     async function calculate() {
-  try {
-    const pyodide = await pyodideReady;
-    const expr = document.getElementById("expr").value;
-    const xval = document.getElementById("xval").value;
-    const hval = document.getElementById("hval").value;
-    const derivType = document.getElementById("derivType").value;
+      const outputDiv = document.getElementById("output");
+      const calcBtn = document.getElementById("calcBtn");
+      
+      outputDiv.innerHTML = '<span class="result-loading">⏳ Calculating... <div class="spinner"></div></span>';
+      calcBtn.disabled = true;
 
-    let scriptFile = "";
-    let pythonCode = "";
-    let description = "";
+      setTimeout(async () => {
+        try {
+          const pyodide = await pyodideReady;
+          const expr = document.getElementById("function").value;
+          const xval = document.getElementById("xValue").value;
+          const hval = document.getElementById("stepSize").value;
+          const derivType = document.getElementById("derivType").value;
 
-    if (derivType === "first") {
-      scriptFile = "point_5_first_derivative.py";
-      description = "✅ First Derivative is calculated as:";
-      pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
-    } else {
-      scriptFile = "second_derivative.py";
-      description = "✅ Second Derivative is calculated as:";
-      pythonCode = `calculate_second_derivative("${expr}", "${xval}", "${hval}")`;
+          let scriptFile = "";
+          let pythonCode = "";
+          let description = "";
+
+          if (derivType === "first") {
+            scriptFile = "point_5_first_derivative.py";
+            description = "✅ First Derivative (d/dx):";
+            pythonCode = `calculate_first_derivative("${expr}", "${xval}", "${hval}")`;
+          } else {
+            scriptFile = "second_derivative.py";
+            description = "✅ Second Derivative (d²/dx²):";
+            pythonCode = `calculate_second_derivative("${expr}", "${xval}", "${hval}")`;
+          }
+
+          const script = await (await fetch(scriptFile)).text();
+          pyodide.runPython(script);
+          const result = pyodide.runPython(pythonCode);
+
+          outputDiv.innerHTML = `<span class="result-success">${description}\n${result}</span>`;
+        } catch (err) {
+          outputDiv.innerHTML = `<span class="result-error">❌ Error: ${err}</span>`;
+        }
+
+        calcBtn.disabled = false;
+      }, 50);
     }
 
-    const script = await (await fetch(scriptFile)).text();
-    pyodide.runPython(script);
-    const result = pyodide.runPython(pythonCode);
-
-    document.getElementById("output").innerText = `${description}\n${result}`;
-  } catch (err) {
-    document.getElementById("output").innerText = "❌ Error: " + err;
-  }
-}
-
-
-    pyodideReady
-      .then(() => document.getElementById("output").textContent = "Loaded. Ready to calculate!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
-
-    window.onload = function() {
-      document.getElementById("loadingScreen").style.display = "none";
-    };
+    // Add ripple effect on button click
+    document.addEventListener('DOMContentLoaded', function() {
+      const button = document.getElementById('calcBtn');
+      button.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.style.position = 'absolute';
+        ripple.style.borderRadius = '50%';
+        ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+        ripple.style.width = ripple.style.height = '100px';
+        ripple.style.left = e.clientX - this.offsetLeft - 50 + 'px';
+        ripple.style.top = e.clientY - this.offsetTop - 50 + 'px';
+        ripple.style.animation = 'clickRipple 0.6s ease-out';
+        ripple.style.pointerEvents = 'none';
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
   </script>
 </body>
 </html>

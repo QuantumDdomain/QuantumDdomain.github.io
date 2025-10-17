@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Integration Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
@@ -9,76 +10,302 @@
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    textarea, input, button, select {
+      max-width: 800px;
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      background: #fff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
+
     h1 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 40px;
+      font-size: 2.5em;
+      font-weight: 600;
     }
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
+
+    .integral-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .integral-symbol {
+      font-size: 120px;
+      font-weight: 100;
+      color: #3498db;
+      line-height: 1;
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .integral-symbol::before {
+      content: "∫";
+      display: block;
+    }
+
+    .limit-input {
+      position: absolute;
+      width: 80px;
+      padding: 8px;
+      font-size: 18px;
+      border: 2px solid #3498db;
       border-radius: 8px;
-      white-space: pre-line;
+      text-align: center;
+      background: white;
+      transition: all 0.3s;
     }
-    .warning {
+
+    .limit-input:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+      transform: scale(1.05);
+    }
+
+    .upper-limit {
+      top: -10px;
+      right: -90px;
+    }
+
+    .lower-limit {
+      bottom: -10px;
+      right: -90px;
+    }
+
+    .function-input {
+      padding: 15px 20px;
+      font-size: 24px;
+      border: 3px solid #3498db;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 200px;
+      transition: all 0.3s;
+    }
+
+    .function-input:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 15px rgba(52, 152, 219, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .dx-text {
+      font-size: 28px;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+
+    .settings-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 30px;
+    }
+
+    .settings-title {
+      font-size: 18px;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .step-size-control {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .step-size-control label {
+      font-size: 16px;
+      color: #555;
+      min-width: 120px;
+    }
+
+    .step-size-control input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .step-size-control input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .calculate-btn {
+      width: 100%;
+      padding: 18px;
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .calculate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+    }
+
+    .calculate-btn:active {
+      transform: translateY(0);
+    }
+
+    .calculate-btn:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #output {
+      margin-top: 30px;
+      padding: 25px;
+      background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+      border-radius: 12px;
+      border-left: 5px solid #3498db;
+      font-size: 18px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .output-success {
+      color: #27ae91;
+      font-weight: 600;
+      font-size: 22px;
+    }
+
+    .output-error {
       color: #e74c3c;
-      font-weight: bold;
-      margin-top: 10px;
+      font-weight: 600;
     }
-    #output.loading::after {
-      content: ' ⏳';
-      animation: blink 1s infinite;
+
+    .output-loading {
+      color: #7f8c8d;
     }
-    @keyframes blink {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .info-text {
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .integral-symbol {
+        font-size: 80px;
+      }
+
+      .function-input {
+        font-size: 20px;
+        min-width: 150px;
+      }
+
+      .limit-input {
+        width: 60px;
+        font-size: 16px;
+      }
+
+      .upper-limit {
+        right: -70px;
+      }
+
+      .lower-limit {
+        right: -70px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Integration Calculator</h1>
+    <h1>∫ Integration Calculator</h1>
 
-    <label for="expr">Enter function f(x):</label>
-    <input type="text" id="expr" value="sin(x)" />
+    <div class="integral-container">
+      <div class="integral-symbol">
+        <input type="text" class="limit-input upper-limit" id="upperLimit" value="1" placeholder="b">
+        <input type="text" class="limit-input lower-limit" id="lowerLimit" value="0" placeholder="a">
+      </div>
+      
+      <input type="text" class="function-input" id="function" value="sin(x)" placeholder="f(x)">
+      
+      <span class="dx-text">dx</span>
+    </div>
 
-    <label for="a">Lower bound (a):</label>
-    <input type="text" id="a" value="0" placeholder="e.g., 0 " />
+    <div class="settings-section">
+      <div class="settings-title">⚙️ Calculation Settings</div>
+      <div class="step-size-control">
+        <label for="stepSize">Step size (h):</label>
+        <input type="text" id="stepSize" value="0.01" placeholder="0.01">
+      </div>
+    </div>
 
-    <label for="b">Upper bound (b):</label>
-    <input type="text" id="b" value="1" placeholder="e.g., 1 " />
+    <button class="calculate-btn" onclick="calculate()" id="calcBtn">Calculate Integral</button>
 
-    <label for="h">Step size (h):</label>
-    <input type="text" id="h" value="0.01" placeholder="e.g., 0.01" />
+    <div id="output" class="output-loading">
+      <span>Loading Pyodide environment...</span>
+      <div class="spinner"></div>
+    </div>
 
-    <button onclick="calculate()">Calculate</button>
-
-    <div id="output" class="loading">Loading...</div>
+    <p class="info-text">Simpson's Rule numerical integration • Enter function in terms of x</p>
   </div>
 
   <script>
@@ -89,43 +316,40 @@
         pyodide = await loadPyodide();
         await pyodide.loadPackage(["sympy"]);
         
-        document.getElementById("output").innerText =
-          "✅ Loaded. Ready to calculate!";
-        document.getElementById("output").classList.remove("loading");
+        document.getElementById("output").innerHTML = '<span class="output-success">✅ Ready to calculate!</span>';
+        document.getElementById("calcBtn").disabled = false;
       } catch (err) {
-        document.getElementById("output").innerText =
-          "❌ Failed to load: " + err;
-        document.getElementById("output").classList.remove("loading");
+        document.getElementById("output").innerHTML = '<span class="output-error">❌ Failed to load: ' + err + '</span>';
       }
     }
 
     initializePyodide();
 
     async function calculate() {
-      document.getElementById("output").innerText = "⏳ Calculating... Please wait.";
-      document.getElementById("output").classList.add("loading");
+      const outputDiv = document.getElementById("output");
+      const calcBtn = document.getElementById("calcBtn");
+      
+      outputDiv.innerHTML = '<span class="output-loading">⏳ Calculating... <div class="spinner"></div></span>';
+      calcBtn.disabled = true;
 
       setTimeout(async () => {
-        const expr = document.getElementById("expr").value;
-        const a = document.getElementById("a").value;
-        const b = document.getElementById("b").value;
-        const h = document.getElementById("h").value || "0.01";
+        const expr = document.getElementById("function").value;
+        const a = document.getElementById("lowerLimit").value;
+        const b = document.getElementById("upperLimit").value;
+        const h = document.getElementById("stepSize").value || "0.01";
 
-        // Fetch the external Python script (simpson.py)
         try {
           const script = await fetch("simpson.py").then(res => res.text());
-
-          // Run the Python script in Pyodide
           pyodide.runPython(script);
 
-          // Call the simpson function with the input values
           const result = pyodide.runPython(`simpson("${a}", "${b}", "${expr}", ${h})`);
-          document.getElementById("output").innerText = "✅ Integral value is = " + result;
+          
+          outputDiv.innerHTML = `<span class="output-success">✅ Result: ${result}</span>`;
         } catch (err) {
-          document.getElementById("output").innerText = "❌ Error: " + err;
+          outputDiv.innerHTML = `<span class="output-error">❌ Error: ${err}</span>`;
         }
 
-        document.getElementById("output").classList.remove("loading");
+        calcBtn.disabled = false;
       }, 50);
     }
   </script>
