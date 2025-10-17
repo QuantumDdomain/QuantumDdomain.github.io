@@ -101,6 +101,49 @@
       font-weight: normal;
       margin-top: 5px;
     }
+
+    /* --- New styles for tabular input --- */
+    #dataInput table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    #dataInput th, #dataInput td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    #dataInput th {
+      background-color: #f2f2f2;
+    }
+    #dataInput input[type="number"], .x-value, .y-value {
+      width: 100%;
+      padding: 5px;
+      margin: 0;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .remove-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: bold;
+      width: auto;
+    }
+    .remove-btn:hover {
+      background-color: #c0392b;
+    }
+    #dataInput > button { 
+      margin-top: 5px;
+      margin-bottom: 15px;
+      display: block;
+      width: auto; /* Override 100% width for the Add Row button */
+    }
+    /* --- End of New styles --- */
   </style>
 </head>
 <body>
@@ -132,11 +175,17 @@
     </div>
   </div>
 
-  <label>Enter x values (e.g. [1, 2, 3, 4]):</label>
-  <textarea id="xInput">[1, 2, 3, 4, 5]</textarea>
-
-  <label>Enter y values (e.g. [2.3, 4.1, 5.9, 8.0]):</label>
-  <textarea id="yInput">[2.3, 4.1, 5.9, 8.0, 10.2]</textarea>
+  <label>Enter x and y values:</label>
+  <div id="dataInput">
+    <table>
+      <thead>
+        <tr><th style="width: 40%;">x</th><th style="width: 40%;">y</th><th style="width: 20%;"></th></tr>
+      </thead>
+      <tbody id="dataTableBody">
+        </tbody>
+    </table>
+    <button onclick="addRow()" type="button" style="width: auto;">+ Add Row</button>
+  </div>
 
   <label>Evaluate y at x =</label>
   <input id="xEval" type="text" placeholder="Enter a value to evaluate y">
@@ -161,30 +210,58 @@ def linear(x, a, b): return a * x + b
 def power(x, a, b): return a * np.power(x, b)
 def exponential(x, a, b): return a * np.power(b, x)
 def custom(x, a, b, c, d): return a * np.power(x, b) + c * np.power(x, d)
-def custom_fixed_b(x, a, c, d): return a * np.power(x, float(document.getElementById("paramB").value)) + c * np.power(x, d)
-def custom_fixed_d(x, a, b, c): return a * np.power(x, b) + c * np.power(x, float(document.getElementById("paramD").value))
+# Functions for custom model with fixed parameters need to read the fixed values from the DOM inside the function
+def custom_fixed_b(x, a, c, d): 
+    # Must re-read the value inside the function scope to ensure it's the latest from the DOM
+    b_val = float(document.getElementById("paramB").value)
+    return a * np.power(x, b_val) + c * np.power(x, d)
+def custom_fixed_d(x, a, b, c): 
+    # Must re-read the value inside the function scope to ensure it's the latest from the DOM
+    d_val = float(document.getElementById("paramD").value)
+    return a * np.power(x, b) + c * np.power(x, d_val)
 def custom_fixed_both(x, a, c): 
+    # Must re-read the values inside the function scope to ensure they are the latest from the DOM
     b_val = float(document.getElementById("paramB").value)
     d_val = float(document.getElementById("paramD").value)
     return a * np.power(x, b_val) + c * np.power(x, d_val)
 
-x_vals = ast.literal_eval(document.getElementById("xInput").value)
-y_vals = ast.literal_eval(document.getElementById("yInput").value)
+# --- Data Reading from Table ---
+x_vals = []
+y_vals = []
+data_table_rows = document.getElementById("dataTableBody").children
+for row in data_table_rows:
+    # Use querySelector to find the input elements within the current row
+    x_input = row.querySelector(".x-value")
+    y_input = row.querySelector(".y-value")
+    
+    # Check if the row contains valid number inputs
+    if x_input and y_input and x_input.value.strip() != "" and y_input.value.strip() != "":
+        try:
+            # Convert values to float and append
+            x_vals.append(float(x_input.value))
+            y_vals.append(float(y_input.value))
+        except ValueError:
+            # Skip invalid rows or handle error gracefully
+            pass
+
 model_type = document.getElementById("modelType").value
 x_eval_input = document.getElementById("xEval").value
 param_b_input = document.getElementById("paramB").value.strip()
 param_d_input = document.getElementById("paramD").value.strip()
 
-if not (isinstance(x_vals, list) and isinstance(y_vals, list)):
-    raise ValueError("x and y inputs must be lists.")
-if len(x_vals) != len(y_vals):
-    raise ValueError("x and y must have the same length.")
+if len(x_vals) < 2:
+    document.getElementById("output").innerText = "❌ Curve fitting failed.\nError: Please enter at least two valid data points (x, y) for fitting."
+    document.getElementById("plot").innerHTML = ""
+    raise SystemExit
 
 x_vals = np.array(x_vals, dtype=float)
 y_vals = np.array(y_vals, dtype=float)
 
+# Validation for non-positive values in log-based models
 if model_type in ["power", "exponential"] and (np.any(x_vals <= 0) or np.any(y_vals <= 0)):
-    raise ValueError("x and y must be positive for power/exponential models.")
+    document.getElementById("output").innerText = "❌ Curve fitting failed.\nError: x and y must be positive for power (y=a*x^b) and exponential (y=a*b^x) models."
+    document.getElementById("plot").innerHTML = ""
+    raise SystemExit
 
 model = None
 popt = None
@@ -199,46 +276,54 @@ try:
         output = "y = a*x + b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
     elif model_type == "power":
         model = power
-        popt, _ = curve_fit(model, x_vals, y_vals)
+        # For initial guess, a reasonable starting point can sometimes help
+        popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1])
         output = "y = a*x^b\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
     elif model_type == "exponential":
         model = exponential
-        popt, _ = curve_fit(model, x_vals, y_vals)
+        popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1])
         output = "y = a*b^x\nParameters:\na = {:.4f}, b = {:.4f}".format(*popt)
     elif model_type == "custom":
         has_b = param_b_input != ""
         has_d = param_d_input != ""
         
+        # Determine the correct model function and initial guess based on fixed params
         if has_b and has_d:
             param_b_val = float(param_b_input)
             param_d_val = float(param_d_input)
             model = custom_fixed_both
-            popt, _ = curve_fit(model, x_vals, y_vals)
+            # Only two parameters (a, c) to fit
+            popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1]) 
             output = f"y = a*x^{param_b_val} + c*x^{param_d_val}\nParameters:\na = {popt[0]:.4f}, c = {popt[1]:.4f}\n(b = {param_b_val} [fixed], d = {param_d_val} [fixed])"
         elif has_b:
             param_b_val = float(param_b_input)
             model = custom_fixed_b
-            popt, _ = curve_fit(model, x_vals, y_vals)
+            # Three parameters (a, c, d) to fit
+            popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1, 1]) 
             output = f"y = a*x^{param_b_val} + c*x^d\nParameters:\na = {popt[0]:.4f}, c = {popt[1]:.4f}, d = {popt[2]:.4f}\n(b = {param_b_val} [fixed])"
         elif has_d:
             param_d_val = float(param_d_input)
             model = custom_fixed_d
-            popt, _ = curve_fit(model, x_vals, y_vals)
+            # Three parameters (a, b, c) to fit
+            popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1, 1]) 
             output = f"y = a*x^b + c*x^{param_d_val}\nParameters:\na = {popt[0]:.4f}, b = {popt[1]:.4f}, c = {popt[2]:.4f}\n(d = {param_d_val} [fixed])"
         else:
             model = custom
-            popt, _ = curve_fit(model, x_vals, y_vals)
+            # Four parameters (a, b, c, d) to fit
+            popt, _ = curve_fit(model, x_vals, y_vals, p0=[1, 1, 1, 1])
             output = "y = a*x^b + c*x^d\nParameters:\na = {:.4f}, b = {:.4f}, c = {:.4f}, d = {:.4f}".format(*popt)
     else:
         raise ValueError("Unknown model selected.")
 except Exception as e:
     document.getElementById("output").innerText = f"❌ Curve fitting failed.\nError: {str(e)}\nPlease check your inputs or model type."
     document.getElementById("plot").innerHTML = ""
-    raise SystemExit
+    raise SystemExit # Stops execution after an error
 
+# --- Evaluation ---
 if x_eval_input.strip() != "":
     try:
         x_eval_val = float(x_eval_input)
+        # Use the correct model function based on the run
         if model_type == "custom":
             if param_b_val is not None and param_d_val is not None:
                 y_eval_val = custom_fixed_both(x_eval_val, *popt)
@@ -254,7 +339,23 @@ if x_eval_input.strip() != "":
     except Exception as e:
         output += f"\n\n❌ Error evaluating y at x = {x_eval_input}: {e}"
 
-x_line = np.linspace(min(x_vals), max(x_vals), 100)
+# --- Plotting ---
+# Ensure the line space includes the evaluation point if it's outside the data range
+x_min = min(x_vals)
+x_max = max(x_vals)
+if x_eval_input.strip() != "":
+    try:
+        x_eval_float = float(x_eval_input)
+        x_min = min(x_min, x_eval_float)
+        x_max = max(x_max, x_eval_float)
+    except ValueError:
+        pass # Ignore if x_eval is not a valid number
+
+# Add a small buffer to the line space for better visualization
+x_range = x_max - x_min
+x_line = np.linspace(x_min - x_range * 0.05, x_max + x_range * 0.05, 100)
+
+# Calculate y values for the fitted line
 if model_type == "custom":
     if param_b_val is not None and param_d_val is not None:
         y_line = custom_fixed_both(x_line, *popt)
@@ -270,17 +371,26 @@ else:
 plt.figure(figsize=(6,4))
 plt.scatter(x_vals, y_vals, color='red', label='Data Points', s=50, zorder=5)
 plt.plot(x_line, y_line, label='Fitted Curve', linewidth=2)
+# Plot the evaluation point if it exists
+if x_eval_input.strip() != "":
+    try:
+        plt.scatter([x_eval_val], [y_eval_val], color='green', marker='o', s=80, label='Evaluation Point', zorder=6)
+    except NameError:
+        pass # Skip if evaluation failed
+
 plt.xlabel('x')
 plt.ylabel('y')
 plt.title('Curve Fitting')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
+# Save plot to buffer
 buf = io.BytesIO()
 plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
 buf.seek(0)
 img_base64 = base64.b64encode(buf.read()).decode('utf-8')
 buf.close()
+plt.close() # Close plot figure to free memory
 
 document.getElementById("output").innerText = output
 document.getElementById("plot").innerHTML = f'<img id="plotImg" src="data:image/png;base64,{img_base64}"/>'
@@ -288,6 +398,8 @@ document.getElementById("plot").innerHTML = f'<img id="plotImg" src="data:image/
 
 <script>
 let pyodide;
+// Initial data for the table
+const initialData = [[1, 2.3], [2, 4.1], [3, 5.9], [4, 8.0], [5, 10.2]];
 
 function toggleCustomParams() {
   const modelType = document.getElementById("modelType").value;
@@ -297,6 +409,61 @@ function toggleCustomParams() {
   } else {
     customParams.classList.remove("show");
   }
+}
+
+/**
+ * Creates and adds a new row to the data table.
+ * @param {number|string} x The initial x value.
+ * @param {number|string} y The initial y value.
+ */
+function createRow(x = '', y = '') {
+  const tableBody = document.getElementById("dataTableBody");
+  const row = tableBody.insertRow();
+  
+  // x-input cell
+  let cellX = row.insertCell();
+  let inputX = document.createElement("input");
+  inputX.type = "number";
+  inputX.className = "x-value"; // Class name for Python to find
+  inputX.value = x;
+  inputX.placeholder = "x-value";
+  cellX.appendChild(inputX);
+  
+  // y-input cell
+  let cellY = row.insertCell();
+  let inputY = document.createElement("input");
+  inputY.type = "number";
+  inputY.className = "y-value"; // Class name for Python to find
+  inputY.value = y;
+  inputY.placeholder = "y-value";
+  cellY.appendChild(inputY);
+  
+  // Remove button cell
+  let cellRemove = row.insertCell();
+  let removeBtn = document.createElement("button");
+  removeBtn.textContent = "—";
+  removeBtn.className = "remove-btn";
+  removeBtn.type = "button"; // Important: prevent it from submitting/running the code
+  removeBtn.onclick = function() {
+    row.remove();
+  };
+  cellRemove.appendChild(removeBtn);
+}
+
+/**
+ * Adds a new, empty row to the data table (used by the button).
+ */
+function addRow() {
+  createRow();
+}
+
+/**
+ * Populates the table with initial data on page load.
+ */
+function initializeTable() {
+    // Clear any existing content just in case
+    document.getElementById("dataTableBody").innerHTML = ""; 
+    initialData.forEach(data => createRow(data[0], data[1]));
 }
 
 async function runCode() {
@@ -311,12 +478,15 @@ async function runCode() {
   }
 
   try {
+    // The Python script is inside the <script type='text/python'> tag
     await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
   } catch (err) {
     const msg = err.toString();
+    // Only display generic error if SystemExit didn't handle the error gracefully
     if (!msg.includes("SystemExit")) {
-      document.getElementById("output").innerText = "❌ Curve fitting failed.\nPlease check your inputs.";
+      document.getElementById("output").innerText = "❌ An unexpected error occurred.\nPlease check your inputs.";
       document.getElementById("plot").innerHTML = "";
+      console.error(err);
     }
   } finally {
     btn.textContent = "Fit Curve";
@@ -339,6 +509,7 @@ function downloadPlot() {
 
 // Initialize on page load
 toggleCustomParams();
+initializeTable();
 </script>
 
 </body>
