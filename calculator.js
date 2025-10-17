@@ -715,7 +715,7 @@ function showCalculator() {
         color: '#666',
         borderLeft: '3px solid #007BFF'
     });
-    info.innerHTML = '<b>Usage:</b> Click functions. In **Calculator Mode**, type or click (symbols are auto-converted for evaluation). In **External Input Mode**, For direct external input (not the calculator panel\'s display), the actual numeric value must be inserted** for compatibility with most backends.';
+    info.innerHTML = '<b>Usage:</b> Click functions. In **Calculator Mode**, type or click (symbols are auto-converted for evaluation). In **External Input Mode**, For direct external input (not the calculator panel\'s display), the actual numeric value must be inserted** for compatibility with backends.';
     calc.appendChild(info);
 
     document.body.appendChild(calc);
