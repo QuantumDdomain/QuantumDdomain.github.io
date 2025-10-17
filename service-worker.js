@@ -1,78 +1,60 @@
-// service-worker.js
+const CACHE_NAME = 'pyodide-full-v0251-cache-1'; 
+const PYODIDE_VERSION = 'v0.25.1';
+const PYODIDE_BASE_URL = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSION}/full/`;
 
-const CACHE_NAME = 'numerical-app-v1';
-const FILES_TO_CACHE = [
-  '/',                            // main index.html
-  '/index.html',                   // root index.html
-  '/README.md',
-  '/requirements.txt',
+// List of ALL essential Pyodide files for version v0.25.1
+// NOTE: This list is based on common Pyodide requests. If your app fails, 
+// check the Network tab on first load to see if any .whl files are also requested.
+const CACHE_URLS = [
+  // Core application files
+  '/',                      // The main domain root
+  '/index.html',            // Root index.html
+  '/service-worker-setup.js',
+  '/load-pyodide-and-app.js',
   
-  // Pyodide core files (from CDN)
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js',
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.asm.wasm',
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/packages.json',
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.js',
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.data',
-  'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/numpy.wasm',
+  // --- CORE PYODIDE FILES (from CDN) ---
+  `${PYODIDE_BASE_URL}pyodide.js`,
+  // The WebAssembly module and its large data file (Standard Library)
+  `${PYODIDE_BASE_URL}pyodide.asm.wasm`,
+  `${PYODIDE_BASE_URL}pyodide.asm.data`,
+  `${PYODIDE_BASE_URL}pyodide.asm.js`,
+  // Package metadata index
+  `${PYODIDE_BASE_URL}packages.json`,
   
-  // Pre-caching important .html files
-  '/curve_fitting/index.html',
-  '/derivatives/index.html',
-  '/integration/index.html',
-  '/interpolation/index.html',
-  '/linear_solver/index.html',
-  '/matrixlab/index.html',
-  '/ode_solver/index.html',
-  '/root_finding/index.html',
-
-  // Pre-caching specific .html files for algorithms
-  '/interpolation/lagrange.html',
-  '/interpolation/spline.html',
-  '/ode_solver/plot.html',
-  '/ode_solver/multivariable_rk.html',
-  '/ode_solver/runge_kutta.html',
-  '/matrixlab/inverse_matrix.html',
-  '/matrixlab/matrixeigen.html',
-  '/matrixlab/matrix_multiply.html',
-  
-  // Pre-caching Python files (modify as needed)
-  '/derivatives/point_5_first_derivative.py',
-  '/derivatives/second_derivative.py',
-  '/integration/simpson.py',
-  '/interpolation/web_lagrange_interpolation.py',
-  '/interpolation/web_spline_interpolation.py',
-  '/linear_solver/web_linear_solver.py',
-  '/ode_solver/runge_kutta_multivariable.py',
-  '/ode_solver/runge_kutta_method.py',
-  '/root_finding/web_muller.py',
+  // Add other local assets (CSS, Images) if desired for full offline support
 ];
 
-// During install, open cache and add files
-self.addEventListener('install', (event) => {
+// 1. Installation: Open cache and store all files
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('Pre-caching FULL Pyodide files...');
+      return cache.addAll(CACHE_URLS);
     })
   );
 });
 
-// Fetch event listener to serve files from cache if available
-self.addEventListener('fetch', (event) => {
+// 2. Fetching: Intercept network requests and serve from cache first
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached response if found, else fetch from the network
-      return cachedResponse || fetch(event.request);
+    caches.match(event.request).then(cachedResponse => {
+      // If the file is in the cache, return it immediately (FAST!)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      // Otherwise, fetch from the network
+      return fetch(event.request);
     })
   );
 });
 
-// Clear old caches (optional)
-self.addEventListener('activate', (event) => {
+// 3. Activation: Clean up old caches when the worker updates
+self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
+        cacheNames.map(cacheName => {
           if (!cacheWhitelist.includes(cacheName)) {
             return caches.delete(cacheName);
           }
