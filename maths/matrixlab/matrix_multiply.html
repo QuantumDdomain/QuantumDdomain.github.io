@@ -2,118 +2,595 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Matrix Multiplication</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Multiplication Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
   <script src="../../service-worker-setup.js"></script>
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    textarea, button {
+      max-width: 1100px;
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
+    
     h1 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 2.5em;
     }
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
+    
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    .dimension-controls {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .dimension-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .dimension-group label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.05em;
+    }
+    
+    .dimension-group input {
+      width: 60px;
+      padding: 8px;
+      font-size: 16px;
+      border: 2px solid #e74c3c;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .dimension-group .times {
+      font-size: 1.3em;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    
+    .update-btn {
+      padding: 10px 25px;
+      background: #e74c3c;
+      color: white;
+      border: none;
       border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-left: 15px;
+    }
+    
+    .update-btn:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .matrices-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .matrix-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .matrix-label {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    
+    .matrix-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .bracket {
+      font-size: 3em;
+      color: #e74c3c;
+      font-weight: 100;
+      line-height: 0.8;
+    }
+    
+    .matrix-grid {
+      display: inline-grid;
+      gap: 6px;
+      padding: 10px;
+    }
+    
+    .matrix-grid input {
+      width: 60px;
+      height: 45px;
+      text-align: center;
+      font-size: 15px;
+      border: 2px solid #bdc3c7;
+      border-radius: 6px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .matrix-grid input:focus {
+      outline: none;
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+      transform: scale(1.05);
+    }
+    
+    .operator {
+      font-size: 2.5em;
+      color: #e74c3c;
+      font-weight: bold;
+      margin: 0 10px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #7f8c8d;
+      transform: translateY(-3px);
+    }
+    
+    .btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #output {
+      margin-top: 30px;
+      padding: 25px;
+      background: #ecf0f1;
+      border-radius: 12px;
+      border-left: 5px solid #e74c3c;
       white-space: pre-line;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #7f8c8d;
+    }
+    
+    .error {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: 600;
+    }
+    
+    .matrix-display {
+      font-family: 'Courier New', monospace;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .info-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      color: #856404;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Matrix Multiplication Tool</h1>
-  <p>Enter two matrices in Python list format:</p>
-  <label>Matrix A:</label>
-  <textarea id="matrixA">[[1, 2], [3, 4]]</textarea>
-  <label>Matrix B:</label>
-  <textarea id="matrixB">[[5, 6], [7, 8]]</textarea>
-  <button onclick="runCode()">Multiply Matrices</button>
-  <pre id="output">Output will appear here...</pre>
+  <h1>✖️ Matrix Multiplication Calculator</h1>
+  <p class="subtitle"> (A x B)</p>
+  
+  <div class="dimension-controls">
+    <div class="dimension-group">
+      <label>Matrix A:</label>
+      <input type="number" id="rowsA" min="1" max="10" value="2">
+      <span class="times">×</span>
+      <input type="number" id="colsA" min="1" max="10" value="3">
+    </div>
+    
+    <div class="dimension-group">
+      <label>Matrix B:</label>
+      <input type="number" id="rowsB" min="1" max="10" value="3">
+      <span class="times">×</span>
+      <input type="number" id="colsB" min="1" max="10" value="2">
+    </div>
+    
+    <button class="update-btn" onclick="updateMatrixSizes()">Update Sizes</button>
+  </div>
+  
+  <div class="info-box" id="compatibilityInfo">
+    ℹ️ For multiplication A×B: columns of A must equal rows of B
+  </div>
+  
+  <div class="matrices-container">
+    <div class="matrix-section">
+      <div class="matrix-label">Matrix A</div>
+      <div class="matrix-wrapper">
+        <span class="bracket">[</span>
+        <div class="matrix-grid" id="matrixGridA"></div>
+        <span class="bracket">]</span>
+      </div>
+    </div>
+    
+    <div class="operator">×</div>
+    
+    <div class="matrix-section">
+      <div class="matrix-label">Matrix B</div>
+      <div class="matrix-wrapper">
+        <span class="bracket">[</span>
+        <div class="matrix-grid" id="matrixGridB"></div>
+        <span class="bracket">]</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="button-group">
+    <button class="btn btn-primary" onclick="multiplyMatrices()" id="multiplyBtn">
+      Calculate A × B
+    </button>
+    <button class="btn btn-secondary" onclick="fillRandom()">
+      Random Matrices
+    </button>
+    <button class="btn btn-secondary" onclick="fillIdentity()">
+      Fill with 1s
+    </button>
+    <button class="btn btn-secondary" onclick="swapMatrices()">
+      Swap A ↔ B
+    </button>
+  </div>
+  
+  <div id="output" class="loading">
+    Click "Calculate A × B" to multiply the matrices...
+  </div>
 </div>
 
-<script type="text/python">
+<script>
+let pyodide;
+let isLoading = false;
+
+// Initialize matrix grids
+function updateMatrixSizes() {
+  const rowsA = parseInt(document.getElementById('rowsA').value);
+  const colsA = parseInt(document.getElementById('colsA').value);
+  const rowsB = parseInt(document.getElementById('rowsB').value);
+  const colsB = parseInt(document.getElementById('colsB').value);
+  
+  if (rowsA < 1 || rowsA > 10 || colsA < 1 || colsA > 10 ||
+      rowsB < 1 || rowsB > 10 || colsB < 1 || colsB > 10) {
+    alert('Please enter dimensions between 1 and 10');
+    return;
+  }
+  
+  // Update compatibility message
+  const infoBox = document.getElementById('compatibilityInfo');
+  if (colsA === rowsB) {
+    infoBox.style.background = '#d4edda';
+    infoBox.style.borderColor = '#28a745';
+    infoBox.style.color = '#155724';
+    infoBox.innerHTML = `✅ Matrices are compatible! Result will be ${rowsA}×${colsB}`;
+  } else {
+    infoBox.style.background = '#f8d7da';
+    infoBox.style.borderColor = '#dc3545';
+    infoBox.style.color = '#721c24';
+    infoBox.innerHTML = `❌ Incompatible! Columns of A (${colsA}) must equal rows of B (${rowsB})`;
+  }
+  
+  createMatrixGrid('matrixGridA', rowsA, colsA);
+  createMatrixGrid('matrixGridB', rowsB, colsB);
+}
+
+function createMatrixGrid(gridId, rows, cols) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+  
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.value = '1';
+      input.id = `${gridId}-${i}-${j}`;
+      grid.appendChild(input);
+    }
+  }
+}
+
+// Fill with random values
+function fillRandom() {
+  const rowsA = parseInt(document.getElementById('rowsA').value);
+  const colsA = parseInt(document.getElementById('colsA').value);
+  const rowsB = parseInt(document.getElementById('rowsB').value);
+  const colsB = parseInt(document.getElementById('colsB').value);
+  
+  fillMatrixRandom('matrixGridA', rowsA, colsA);
+  fillMatrixRandom('matrixGridB', rowsB, colsB);
+}
+
+function fillMatrixRandom(gridId, rows, cols) {
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const input = document.getElementById(`${gridId}-${i}-${j}`);
+      input.value = Math.floor(Math.random() * 20) - 10;
+    }
+  }
+}
+
+// Fill with 1s
+function fillIdentity() {
+  const rowsA = parseInt(document.getElementById('rowsA').value);
+  const colsA = parseInt(document.getElementById('colsA').value);
+  const rowsB = parseInt(document.getElementById('rowsB').value);
+  const colsB = parseInt(document.getElementById('colsB').value);
+  
+  fillMatrixOnes('matrixGridA', rowsA, colsA);
+  fillMatrixOnes('matrixGridB', rowsB, colsB);
+}
+
+function fillMatrixOnes(gridId, rows, cols) {
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const input = document.getElementById(`${gridId}-${i}-${j}`);
+      input.value = '1';
+    }
+  }
+}
+
+// Swap matrices
+function swapMatrices() {
+  const rowsA = parseInt(document.getElementById('rowsA').value);
+  const colsA = parseInt(document.getElementById('colsA').value);
+  const rowsB = parseInt(document.getElementById('rowsB').value);
+  const colsB = parseInt(document.getElementById('colsB').value);
+  
+  const matrixA = getMatrixFromInputs('matrixGridA', rowsA, colsA);
+  const matrixB = getMatrixFromInputs('matrixGridB', rowsB, colsB);
+  
+  // Swap dimensions
+  document.getElementById('rowsA').value = rowsB;
+  document.getElementById('colsA').value = colsB;
+  document.getElementById('rowsB').value = rowsA;
+  document.getElementById('colsB').value = colsA;
+  
+  updateMatrixSizes();
+  
+  // Fill with swapped values
+  setMatrixValues('matrixGridA', matrixB);
+  setMatrixValues('matrixGridB', matrixA);
+}
+
+// Get matrix from inputs
+function getMatrixFromInputs(gridId, rows, cols) {
+  const matrix = [];
+  for (let i = 0; i < rows; i++) {
+    const row = [];
+    for (let j = 0; j < cols; j++) {
+      const value = parseFloat(document.getElementById(`${gridId}-${i}-${j}`).value);
+      if (isNaN(value)) {
+        throw new Error(`Invalid value at ${gridId} position (${i+1}, ${j+1})`);
+      }
+      row.push(value);
+    }
+    matrix.push(row);
+  }
+  return matrix;
+}
+
+// Set matrix values
+function setMatrixValues(gridId, matrix) {
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[i].length; j++) {
+      const input = document.getElementById(`${gridId}-${i}-${j}`);
+      if (input) {
+        input.value = matrix[i][j];
+      }
+    }
+  }
+}
+
+// Load Pyodide
+async function loadPyodideEnv() {
+  if (!pyodide) {
+    document.getElementById('output').innerHTML = '<span class="loading">⏳ Loading Python environment...</span>';
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage("numpy");
+    document.getElementById('output').innerHTML = '<span class="success">✅ Ready to calculate!</span>';
+  }
+}
+
+// Multiply matrices
+async function multiplyMatrices() {
+  if (isLoading) return;
+  
+  const btn = document.getElementById('multiplyBtn');
+  const output = document.getElementById('output');
+  
+  try {
+    isLoading = true;
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
+    
+    await loadPyodideEnv();
+    
+    const rowsA = parseInt(document.getElementById('rowsA').value);
+    const colsA = parseInt(document.getElementById('colsA').value);
+    const rowsB = parseInt(document.getElementById('rowsB').value);
+    const colsB = parseInt(document.getElementById('colsB').value);
+    
+    const matrixA = getMatrixFromInputs('matrixGridA', rowsA, colsA);
+    const matrixB = getMatrixFromInputs('matrixGridB', rowsB, colsB);
+    
+    if (colsA !== rowsB) {
+      throw new Error(`Matrix dimensions incompatible! Columns of A (${colsA}) must equal rows of B (${rowsB})`);
+    }
+    
+    output.innerHTML = '<span class="loading">🔄 Multiplying matrices...</span>';
+    
+    const pythonCode = `
 import numpy as np
-from js import document
 
 def matrix_multiply(A, B):
     A = np.array(A, dtype=float)
     B = np.array(B, dtype=float)
-
-    rows_1, columns_1 = A.shape
-    rows_2, columns_2 = B.shape
-
-    if columns_1 != rows_2:
-        return "❌ Matrix multiplication is not possible. Columns of A must equal rows of B."
-
-    C = np.zeros((rows_1, columns_2))
-
-    for i in range(rows_1):
-        for j in range(columns_2):
-            total = 0
-            for q in range(columns_1):
-                total += A[i][q] * B[q][j]
-            C[i][j] = total
-
-    return np.round(C, 4)
-
-try:
-    A_input = eval(document.getElementById("matrixA").value)
-    B_input = eval(document.getElementById("matrixB").value)
-
-    if not isinstance(A_input, list) or not isinstance(B_input, list):
-        raise ValueError("Both inputs must be lists of lists.")
     
-    result = matrix_multiply(A_input, B_input)
-    output = f"Result of A × B:\n{result}"
-except Exception as e:
-    output = f"❌ Error: {e}"
+    rows_A, cols_A = A.shape
+    rows_B, cols_B = B.shape
+    
+    if cols_A != rows_B:
+        raise ValueError(f"Incompatible dimensions: A is {rows_A}×{cols_A}, B is {rows_B}×{cols_B}")
+    
+    # Manual multiplication
+    C = np.zeros((rows_A, cols_B))
+    for i in range(rows_A):
+        for j in range(cols_B):
+            total = 0
+            for k in range(cols_A):
+                total += A[i][k] * B[k][j]
+            C[i][j] = total
+    
+    # Verify with NumPy
+    C_verify = np.dot(A, B)
+    error = np.max(np.abs(C - C_verify))
+    
+    return C, error
 
-document.getElementById("output").innerText = output
-</script>
+A = ${JSON.stringify(matrixA)}
+B = ${JSON.stringify(matrixB)}
+result, error = matrix_multiply(A, B)
+result.tolist(), error
+`;
 
-<script>
-let pyodide;
-async function runCode() {
-  if (!pyodide) {
-    pyodide = await loadPyodide();
-    await pyodide.loadPackage("numpy");
-    document.getElementById("output").textContent = "✅ Loaded. Ready!";
-  }
-
-  try {
-    await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
+    const [result, error] = await pyodide.runPythonAsync(pythonCode);
+    
+    let outputText = '✅ <span class="success">MATRIX MULTIPLICATION COMPLETED!</span>\n\n';
+    outputText += `📊 Matrix A (${rowsA}×${colsA}):\n`;
+    outputText += formatMatrix(matrixA);
+    outputText += `\n\n📊 Matrix B (${rowsB}×${colsB}):\n`;
+    outputText += formatMatrix(matrixB);
+    outputText += `\n\n📐 Result A × B (${rowsA}×${colsB}):\n`;
+    outputText += formatMatrix(result);
+    outputText += `\n\n🎯 Computation Verification Error: ${error.toExponential(2)}`;
+    
+    if (error < 1e-10) {
+      outputText += '\n   ✓ Perfect calculation!';
+    }
+    
+    output.innerHTML = outputText;
+    
   } catch (err) {
-    document.getElementById("output").innerText = "❌ Python Error:\n" + err;
+    output.innerHTML = `<span class="error">❌ ERROR:</span>\n${err.message || err}`;
+  } finally {
+    isLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Calculate A × B';
   }
 }
+
+// Format matrix for display
+function formatMatrix(matrix) {
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  let output = '<div class="matrix-display">';
+  
+  for (let i = 0; i < rows; i++) {
+    output += '[ ';
+    for (let j = 0; j < cols; j++) {
+      const value = typeof matrix[i][j] === 'number' ? matrix[i][j] : parseFloat(matrix[i][j]);
+      output += value.toFixed(4).padStart(10, ' ');
+      if (j < cols - 1) output += '  ';
+    }
+    output += ' ]\n';
+  }
+  
+  output += '</div>';
+  return output;
+}
+
+// Initialize on load
+window.onload = function() {
+  updateMatrixSizes();
+  loadPyodideEnv();
+};
 </script>
 
 </body>

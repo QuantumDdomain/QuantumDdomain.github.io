@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Matrix Inverse Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
@@ -9,66 +10,377 @@
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    textarea, input, button {
+      max-width: 900px;
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
+    
     h1 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 2.5em;
     }
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
+    
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    .dimension-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .dimension-control label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.1em;
+    }
+    
+    .dimension-control input {
+      width: 80px;
+      padding: 10px;
+      font-size: 18px;
+      border: 2px solid #3498db;
       border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .dimension-control button {
+      padding: 10px 25px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .dimension-control button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    }
+    
+    .matrix-section {
+      margin-bottom: 30px;
+    }
+    
+    .matrix-title {
+      font-size: 1.3em;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .matrix-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .bracket {
+      font-size: 4em;
+      color: #3498db;
+      font-weight: 100;
+      line-height: 0.8;
+    }
+    
+    .matrix-grid {
+      display: inline-grid;
+      gap: 8px;
+      padding: 10px;
+    }
+    
+    .matrix-grid input {
+      width: 70px;
+      height: 50px;
+      text-align: center;
+      font-size: 16px;
+      border: 2px solid #bdc3c7;
+      border-radius: 6px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .matrix-grid input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+      transform: scale(1.05);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #7f8c8d;
+      transform: translateY(-3px);
+    }
+    
+    .btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #output {
+      margin-top: 30px;
+      padding: 25px;
+      background: #ecf0f1;
+      border-radius: 12px;
+      border-left: 5px solid #3498db;
       white-space: pre-line;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #7f8c8d;
+    }
+    
+    .error {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: 600;
+    }
+    
+    .matrix-display {
+      font-family: 'Courier New', monospace;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Matrix Inverse Calculator</h1>
-  <p>Enter a square matrix in Python list format (e.g. <code>[[2,1],[1,2]]</code>):</p>
-  <textarea id="matrixInput">[[2, 1, 3], [1, 2, 1], [3, 1, 2]]</textarea>
-  <button onclick="runCode()">Calculate Inverse</button>
-  <pre id="output">Output will appear here...</pre>
+  <h1>🧮 Matrix Inverse Calculator</h1>
+  
+  <div class="dimension-control">
+    <label for="dimension">Matrix Size (NxN):</label>
+    <input type="number" id="dimension" min="2" max="10" value="3">
+    <button onclick="updateMatrixSize()">Update Size</button>
+  </div>
+  
+  <div class="matrix-section">
+    <div class="matrix-title">Input Matrix [A]</div>
+    <div class="matrix-wrapper">
+      <span class="bracket">[</span>
+      <div class="matrix-grid" id="matrixGrid"></div>
+      <span class="bracket">]</span>
+    </div>
+  </div>
+  
+  <div class="button-group">
+    <button class="btn btn-primary" onclick="calculateInverse()" id="calculateBtn">
+      Calculate A⁻¹
+    </button>
+    <button class="btn btn-secondary" onclick="fillRandom()">
+      Random Matrix
+    </button>
+    <button class="btn btn-secondary" onclick="fillIdentity()">
+      Identity Matrix
+    </button>
+  </div>
+  
+  <div id="output" class="loading">
+    Click "Calculate A⁻¹" to compute the inverse matrix...
+  </div>
 </div>
 
-<script type="text/python">
+<script>
+let pyodide;
+let isLoading = false;
+
+// Initialize matrix grid
+function updateMatrixSize() {
+  const n = parseInt(document.getElementById('dimension').value);
+  if (n < 2 || n > 10) {
+    alert('Please enter a dimension between 2 and 10');
+    return;
+  }
+  
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${n}, 70px)`;
+  
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.value = i === j ? '1' : '0';
+      input.id = `cell-${i}-${j}`;
+      grid.appendChild(input);
+    }
+  }
+}
+
+// Fill with random values
+function fillRandom() {
+  const n = parseInt(document.getElementById('dimension').value);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.getElementById(`cell-${i}-${j}`);
+      input.value = Math.floor(Math.random() * 20) - 10; // Random between -10 and 10
+    }
+  }
+}
+
+// Fill with identity matrix
+function fillIdentity() {
+  const n = parseInt(document.getElementById('dimension').value);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.getElementById(`cell-${i}-${j}`);
+      input.value = i === j ? '1' : '0';
+    }
+  }
+}
+
+// Get matrix from inputs
+function getMatrixFromInputs() {
+  const n = parseInt(document.getElementById('dimension').value);
+  const matrix = [];
+  
+  for (let i = 0; i < n; i++) {
+    const row = [];
+    for (let j = 0; j < n; j++) {
+      const value = parseFloat(document.getElementById(`cell-${i}-${j}`).value);
+      if (isNaN(value)) {
+        throw new Error(`Invalid value at position (${i+1}, ${j+1})`);
+      }
+      row.push(value);
+    }
+    matrix.push(row);
+  }
+  
+  return matrix;
+}
+
+// Load Pyodide
+async function loadPyodideEnv() {
+  if (!pyodide) {
+    document.getElementById('output').innerHTML = '<span class="loading">⏳ Loading Python environment...</span>';
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage("numpy");
+    document.getElementById('output').innerHTML = '<span class="success">✅ Ready to calculate!</span>';
+  }
+}
+
+// Calculate inverse
+async function calculateInverse() {
+  if (isLoading) return;
+  
+  const btn = document.getElementById('calculateBtn');
+  const output = document.getElementById('output');
+  
+  try {
+    isLoading = true;
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
+    
+    // Load Pyodide if not loaded
+    await loadPyodideEnv();
+    
+    // Get matrix from inputs
+    const matrix = getMatrixFromInputs();
+    const n = matrix.length;
+    
+    output.innerHTML = '<span class="loading">🔄 Computing inverse matrix...</span>';
+    
+    // Create Python code
+    const pythonCode = `
 import numpy as np
-from js import document
 
 def inverse_matrix(A):
     n = len(A)
     A = np.array(A, dtype=float)
     B = np.identity(n)
+    original_A = A.copy()
 
     # Forward Elimination
     for j in range(n):
-        if abs(A[j][j]) < 1e-12:
-            raise ValueError("Matrix is singular or nearly singular.")
+        # Find pivot
+        max_row = j
+        for i in range(j + 1, n):
+            if abs(A[i][j]) > abs(A[max_row][j]):
+                max_row = i
+        
+        # Swap rows
+        if max_row != j:
+            A[[j, max_row]] = A[[max_row, j]]
+            B[[j, max_row]] = B[[max_row, j]]
+        
+        if abs(A[j][j]) < 1e-10:
+            raise ValueError("Matrix is singular and cannot be inverted.")
+        
         for i in range(j + 1, n):
             scale_factor = A[i][j] / A[j][j]
             A[i] = A[i] - scale_factor * A[j]
@@ -76,8 +388,9 @@ def inverse_matrix(A):
 
     # Backward Elimination
     for j in range(n - 1, -1, -1):
-        if abs(A[j][j]) < 1e-12:
-            raise ValueError("Matrix is singular or nearly singular.")
+        if abs(A[j][j]) < 1e-10:
+            raise ValueError("Matrix is singular and cannot be inverted.")
+        
         for i in range(j - 1, -1, -1):
             scale_factor = A[i][j] / A[j][j]
             A[i] = A[i] - scale_factor * A[j]
@@ -88,40 +401,68 @@ def inverse_matrix(A):
         B[i] = B[i] / A[i][i]
         A[i][i] = 1.0
 
-    return B
+    # Verify the result
+    result_check = np.dot(original_A, B)
+    identity = np.identity(n)
+    error = np.max(np.abs(result_check - identity))
 
-# Handle user input
-try:
-    matrix_input = document.getElementById("matrixInput").value
-    matrix = eval(matrix_input)
-    if not isinstance(matrix, list) or not all(isinstance(row, list) for row in matrix):
-        raise ValueError("Input must be a list of lists.")
-    if len(matrix) != len(matrix[0]):
-        raise ValueError("Matrix must be square.")
+    return B, error
+
+matrix = ${JSON.stringify(matrix)}
+result, error = inverse_matrix(matrix)
+result.tolist(), error
+`;
+
+    const [inverse, error] = await pyodide.runPythonAsync(pythonCode);
     
-    result = inverse_matrix(matrix)
-    output = "Inverse Matrix:\n" + str(np.round(result, 4))
-except Exception as e:
-    output = f"❌ Error: {e}"
-
-document.getElementById("output").innerText = output
-</script>
-
-<script>
-let pyodide;
-async function runCode() {
-  if (!pyodide) {
-    pyodide = await loadPyodide();
-    await pyodide.loadPackage("numpy");
-    document.getElementById("output").textContent = "✅ Loaded. Ready!";
-  }
-
-  try {
-    await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
+    // Format output
+    let outputText = '✅ <span class="success">INVERSE MATRIX CALCULATED SUCCESSFULLY!</span>\n\n';
+    outputText += '📊 Original Matrix [A]:\n';
+    outputText += formatMatrix(matrix);
+    outputText += '\n\n📐 Inverse Matrix [A⁻¹]:\n';
+    outputText += formatMatrix(inverse);
+    outputText += `\n\n🎯 Verification Error: ${error.toExponential(2)}`;
+    outputText += '\n   (A × A⁻¹ should equal Identity Matrix)';
+    
+    if (error < 1e-8) {
+      outputText += '\n   ✓ Excellent precision!';
+    }
+    
+    output.innerHTML = outputText;
+    
   } catch (err) {
-    document.getElementById("output").innerText = "❌ Python Error:\n" + err;
+    output.innerHTML = `<span class="error">❌ ERROR:</span>\n${err.message || err}`;
+  } finally {
+    isLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Calculate A⁻¹';
   }
 }
+
+// Format matrix for display
+function formatMatrix(matrix) {
+  const n = matrix.length;
+  let output = '<div class="matrix-display">';
+  
+  for (let i = 0; i < n; i++) {
+    output += '[ ';
+    for (let j = 0; j < n; j++) {
+      const value = typeof matrix[i][j] === 'number' ? matrix[i][j] : parseFloat(matrix[i][j]);
+      output += value.toFixed(4).padStart(10, ' ');
+      if (j < n - 1) output += '  ';
+    }
+    output += ' ]\n';
+  }
+  
+  output += '</div>';
+  return output;
+}
+
+// Initialize on load
+window.onload = function() {
+  updateMatrixSize();
+  loadPyodideEnv();
+};
 </script>
 
 </body>

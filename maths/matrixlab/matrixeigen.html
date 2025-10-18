@@ -2,62 +2,436 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Matrix Spectrum Solver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eigenvalue & Eigenvector Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
   <script src="../../service-worker-setup.js"></script>
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    textarea, input, button {
+      max-width: 900px;
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
+    
     h1 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 2.5em;
     }
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
+    
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    .dimension-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .dimension-control label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.1em;
+    }
+    
+    .dimension-control input {
+      width: 80px;
+      padding: 10px;
+      font-size: 18px;
+      border: 2px solid #7e22ce;
       border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .dimension-control button {
+      padding: 10px 25px;
+      background: #7e22ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .dimension-control button:hover {
+      background: #6b21a8;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(126, 34, 206, 0.4);
+    }
+    
+    .matrix-section {
+      margin-bottom: 30px;
+    }
+    
+    .matrix-title {
+      font-size: 1.3em;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .matrix-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .bracket {
+      font-size: 4em;
+      color: #7e22ce;
+      font-weight: 100;
+      line-height: 0.8;
+    }
+    
+    .matrix-grid {
+      display: inline-grid;
+      gap: 8px;
+      padding: 10px;
+    }
+    
+    .matrix-grid input {
+      width: 70px;
+      height: 50px;
+      text-align: center;
+      font-size: 16px;
+      border: 2px solid #bdc3c7;
+      border-radius: 6px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .matrix-grid input:focus {
+      outline: none;
+      border-color: #7e22ce;
+      box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.1);
+      transform: scale(1.05);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #1e3c72 0%, #7e22ce 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(126, 34, 206, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #7f8c8d;
+      transform: translateY(-3px);
+    }
+    
+    .btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #output {
+      margin-top: 30px;
+      padding: 25px;
+      background: #ecf0f1;
+      border-radius: 12px;
+      border-left: 5px solid #7e22ce;
       white-space: pre-line;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #7f8c8d;
+    }
+    
+    .error {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: 600;
+    }
+    
+    .eigenvalue-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #7e22ce;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .eigenvalue-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #7e22ce;
+      margin-bottom: 10px;
+    }
+    
+    .eigenvector-display {
+      font-family: 'Courier New', monospace;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      color: #1565c0;
     }
   </style>
 </head>
 <body>
 
-<h2>Eigenvalue & Eigenvector Calculator</h2>
-<p>Enter a square matrix in Python list format (e.g. <code>[[2,1],[1,2]]</code>):</p>
-<textarea id="matrixInput">[[0,1,0],[0,0,1],[2,-5,4]]</textarea>
-<br>
-<button onclick="runCode()">Calculate</button>
-<pre id="output">Output will appear here...</pre>
+<div class="container">
+  <h1>λ Eigenvalue & Eigenvector Calculator</h1>
+  <p class="subtitle">Using Faddeev-Leverrier Algorithm</p>
+  
+  <div class="dimension-control">
+    <label for="dimension">Matrix Size (NxN):</label>
+    <input type="number" id="dimension" min="2" max="8" value="3">
+    <button onclick="updateMatrixSize()">Update Size</button>
+  </div>
+  
+  <div class="info-box">
+    ℹ️ This calculator finds eigenvalues and eigenvectors for square matrices using the characteristic polynomial method.
+  </div>
+  
+  <div class="matrix-section">
+    <div class="matrix-title">Input Matrix [A]</div>
+    <div class="matrix-wrapper">
+      <span class="bracket">[</span>
+      <div class="matrix-grid" id="matrixGrid"></div>
+      <span class="bracket">]</span>
+    </div>
+  </div>
+  
+  <div class="button-group">
+    <button class="btn btn-primary" onclick="calculateEigen()" id="calculateBtn">
+      Calculate λ & v
+    </button>
+    <button class="btn btn-secondary" onclick="fillRandom()">
+      Random Matrix
+    </button>
+    <button class="btn btn-secondary" onclick="fillSymmetric()">
+      Symmetric Matrix
+    </button>
+    <button class="btn btn-secondary" onclick="fillDiagonal()">
+      Diagonal Matrix
+    </button>
+  </div>
+  
+  <div id="output" class="loading">
+    Click "Calculate λ & v" to compute eigenvalues and eigenvectors...
+  </div>
+</div>
 
-<script type="text/python">
+<script>
+let pyodide;
+let isLoading = false;
+
+// Initialize matrix grid
+function updateMatrixSize() {
+  const n = parseInt(document.getElementById('dimension').value);
+  if (n < 2 || n > 8) {
+    alert('Please enter a dimension between 2 and 8');
+    return;
+  }
+  
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${n}, 70px)`;
+  
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.value = '0';
+      input.id = `cell-${i}-${j}`;
+      grid.appendChild(input);
+    }
+  }
+  
+  // Set default example matrix
+  if (n === 3) {
+    document.getElementById('cell-0-0').value = '0';
+    document.getElementById('cell-0-1').value = '1';
+    document.getElementById('cell-0-2').value = '0';
+    document.getElementById('cell-1-0').value = '0';
+    document.getElementById('cell-1-1').value = '0';
+    document.getElementById('cell-1-2').value = '1';
+    document.getElementById('cell-2-0').value = '2';
+    document.getElementById('cell-2-1').value = '-5';
+    document.getElementById('cell-2-2').value = '4';
+  }
+}
+
+// Fill with random values
+function fillRandom() {
+  const n = parseInt(document.getElementById('dimension').value);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.getElementById(`cell-${i}-${j}`);
+      input.value = Math.floor(Math.random() * 10) - 5;
+    }
+  }
+}
+
+// Fill with symmetric matrix
+function fillSymmetric() {
+  const n = parseInt(document.getElementById('dimension').value);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (j >= i) {
+        const value = Math.floor(Math.random() * 10) - 5;
+        document.getElementById(`cell-${i}-${j}`).value = value;
+        document.getElementById(`cell-${j}-${i}`).value = value;
+      }
+    }
+  }
+}
+
+// Fill with diagonal matrix
+function fillDiagonal() {
+  const n = parseInt(document.getElementById('dimension').value);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const input = document.getElementById(`cell-${i}-${j}`);
+      if (i === j) {
+        input.value = Math.floor(Math.random() * 10) + 1;
+      } else {
+        input.value = '0';
+      }
+    }
+  }
+}
+
+// Get matrix from inputs
+function getMatrixFromInputs() {
+  const n = parseInt(document.getElementById('dimension').value);
+  const matrix = [];
+  
+  for (let i = 0; i < n; i++) {
+    const row = [];
+    for (let j = 0; j < n; j++) {
+      const value = parseFloat(document.getElementById(`cell-${i}-${j}`).value);
+      if (isNaN(value)) {
+        throw new Error(`Invalid value at position (${i+1}, ${j+1})`);
+      }
+      row.push(value);
+    }
+    matrix.push(row);
+  }
+  
+  return matrix;
+}
+
+// Load Pyodide
+async function loadPyodideEnv() {
+  if (!pyodide) {
+    document.getElementById('output').innerHTML = '<span class="loading">⏳ Loading Python environment...</span>';
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage("numpy");
+    document.getElementById('output').innerHTML = '<span class="success">✅ Ready to calculate!</span>';
+  }
+}
+
+// Calculate eigenvalues and eigenvectors
+async function calculateEigen() {
+  if (isLoading) return;
+  
+  const btn = document.getElementById('calculateBtn');
+  const output = document.getElementById('output');
+  
+  try {
+    isLoading = true;
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
     
+    await loadPyodideEnv();
+    
+    const matrix = getMatrixFromInputs();
+    const n = matrix.length;
+    
+    output.innerHTML = '<span class="loading">🔄 Computing eigenvalues and eigenvectors...</span>';
+    
+    const pythonCode = `
 import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
 
 def trace(A):
     return sum(A[i][i] for i in range(len(A)))
@@ -85,15 +459,23 @@ def gauss_elimination(A):
     X = np.zeros(n)
     for i in range(n):
         for j in range(i + 1, n):
-            if A[i, i] == 0: continue
+            if abs(A[i, i]) < 1e-10: 
+                continue
             factor = A[j, i] / A[i, i]
             A[j, i:] -= factor * A[i, i:]
+    
     for i in range(n - 1, -1, -1):
         if np.all(np.abs(A[i]) < 1e-6):
             X[i] = 1
         else:
             sum_values = sum(A[i][j] * X[j] for j in range(i + 1, n))
-            X[i] = (0 - sum_values) / A[i][i] if A[i][i] != 0 else 0
+            X[i] = (0 - sum_values) / A[i][i] if abs(A[i][i]) > 1e-10 else 0
+    
+    # Normalize
+    norm = np.linalg.norm(X)
+    if norm > 1e-10:
+        X = X / norm
+    
     return X
 
 def eigenvector(A, eigenvalues):
@@ -101,45 +483,154 @@ def eigenvector(A, eigenvalues):
     A = np.array(A, dtype=float)
     p = len(A)
     for val in eigenvalues:
-        val = np.real_if_close(val)
+        # Handle complex eigenvalues
+        if np.iscomplex(val):
+            val_real = float(np.real(val))
+            val_imag = float(np.imag(val))
+        else:
+            val_real = float(val)
+            val_imag = 0.0
+        
         shifted_A = A - val * np.identity(p)
-        vec = gauss_elimination(shifted_A)
-        results.append((val, vec))
+        vec = gauss_elimination(shifted_A.copy())
+        results.append({
+            'eigenvalue_real': val_real,
+            'eigenvalue_imag': val_imag,
+            'eigenvector': vec.tolist()
+        })
     return results
 
-# Grab matrix from user input
-from js import document
-user_input = document.getElementById("matrixInput").value
-matrix = eval(user_input)
+# Main calculation
+matrix = ${JSON.stringify(matrix)}
+A = np.array(matrix, dtype=float)
 
+# Get characteristic polynomial
 scalar = faddeev_leverrier(matrix)
+
+# Solve for eigenvalues
 eigenvalues = polynomial_solve(scalar)
+
+# Get eigenvectors
 results = eigenvector(matrix, eigenvalues)
 
-output_text = ""
-for val, vec in results:
-    output_text += f"Eigenvalue: {val:.4f}\nEigenvector: {np.round(vec, 4)}\n\n"
+# Return results
+{'results': results, 'char_poly': scalar.tolist()}
+`;
 
-document.getElementById("output").innerText = output_text
-</script>
-
-<script>
-    let pyodide;
-    async function runCode() {
-      if (!pyodide) {
-        pyodide = await loadPyodide();
-        await pyodide.loadPackage("numpy");
-        document.getElementById("output").textContent = "✅ Loaded. Ready to calculate!";
-      }
+    const resultData = await pyodide.runPythonAsync(pythonCode);
+    const results = resultData.toJs().get('results');
+    const charPoly = resultData.toJs().get('char_poly');
     
-      try {
-        await pyodide.runPythonAsync(document.querySelector("script[type='text/python']").textContent);
-      } catch (err) {
-        document.getElementById("output").innerText = "❌ Error:\n" + err;
-      }
+    let outputText = '✅ <span class="success">EIGENVALUE CALCULATION COMPLETED!</span>\n\n';
+    outputText += '📊 Original Matrix [A]:\n';
+    outputText += formatMatrix(matrix);
+    
+    outputText += '\n\n📐 Characteristic Polynomial:\n';
+    outputText += formatPolynomial(charPoly);
+    
+    outputText += '\n\n🎯 Eigenvalues and Eigenvectors:\n';
+    outputText += '<div style="margin-top: 15px;">';
+    
+    for (let index = 0; index < results.length; index++) {
+      const result = results[index].toJs ? results[index].toJs() : results[index];
+      const eigenval_real = result.get ? result.get('eigenvalue_real') : result.eigenvalue_real;
+      const eigenval_imag = result.get ? result.get('eigenvalue_imag') : result.eigenvalue_imag;
+      const eigenvec = result.get ? Array.from(result.get('eigenvector')) : result.eigenvector;
+      
+      const isReal = Math.abs(eigenval_imag) < 1e-10;
+      const eigenvalStr = isReal ? 
+        eigenval_real.toFixed(6) : 
+        `${eigenval_real.toFixed(4)} ${eigenval_imag >= 0 ? '+' : ''}${eigenval_imag.toFixed(4)}i`;
+      
+      outputText += `<div class="eigenvalue-card">`;
+      outputText += `<div class="eigenvalue-header">λ${index + 1} = ${eigenvalStr}</div>`;
+      outputText += `<div>Eigenvector v${index + 1}:</div>`;
+      outputText += '<div class="eigenvector-display">';
+      outputText += formatVector(eigenvec);
+      outputText += '</div>';
+      outputText += '</div>';
     }
-</script>
     
+    outputText += '</div>';
+    
+    output.innerHTML = outputText;
+    
+  } catch (err) {
+    output.innerHTML = `<span class="error">❌ ERROR:</span>\n${err.message || err}`;
+    console.error(err);
+  } finally {
+    isLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Calculate λ & v';
+  }
+}
+
+// Format matrix for display
+function formatMatrix(matrix) {
+  const n = matrix.length;
+  let output = '<div style="font-family: \'Courier New\', monospace; background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">';
+  
+  for (let i = 0; i < n; i++) {
+    output += '[ ';
+    for (let j = 0; j < n; j++) {
+      const value = typeof matrix[i][j] === 'number' ? matrix[i][j] : parseFloat(matrix[i][j]);
+      output += value.toFixed(4).padStart(10, ' ');
+      if (j < n - 1) output += '  ';
+    }
+    output += ' ]\n';
+  }
+  
+  output += '</div>';
+  return output;
+}
+
+// Format vector for display
+function formatVector(vector) {
+  let output = '[\n';
+  for (let i = 0; i < vector.length; i++) {
+    const val = vector[i];
+    output += `  ${val.toFixed(6)}\n`;
+  }
+  output += ']';
+  return output;
+}
+
+// Format polynomial
+function formatPolynomial(coeffs) {
+  const n = coeffs.length - 1;
+  let output = '<div style="font-family: \'Courier New\', monospace; background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">';
+  output += 'p(λ) = ';
+  
+  for (let i = 0; i < coeffs.length; i++) {
+    const coeff = coeffs[i];
+    const power = n - i;
+    
+    if (Math.abs(coeff) < 1e-10) continue;
+    
+    if (i > 0 && coeff > 0) output += ' + ';
+    if (coeff < 0) output += ' - ';
+    
+    const absCoeff = Math.abs(coeff);
+    if (Math.abs(absCoeff - 1) > 1e-10 || power === 0) {
+      output += absCoeff.toFixed(4);
+    }
+    
+    if (power > 0) {
+      output += 'λ';
+      if (power > 1) output += `<sup>${power}</sup>`;
+    }
+  }
+  
+  output += '</div>';
+  return output;
+}
+
+// Initialize on load
+window.onload = function() {
+  updateMatrixSize();
+  loadPyodideEnv();
+};
+</script>
 
 </body>
 </html>
