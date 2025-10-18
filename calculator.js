@@ -525,9 +525,6 @@ function showCalculator() {
             items: [
                 { display: 'π', value: 'π', numValue: '3.141592653589793' },
                 { display: 'e', value: 'e', numValue: '2.71828182846' },
-                { display: '√2', value: '√2', numValue: '1.41421356237' },
-                { display: '√3', value: '√3', numValue: '1.73205080757' },
-                { display: '√5', value: '√5', numValue: '2.23606797750' },
                 { display: 'φ (golden)', value: 'φ', numValue: '1.61803398875' }
             ]
         },
