@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Linear Equation Solver</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
@@ -9,137 +10,426 @@
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    textarea, input, button {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      margin-top: 2.5rem;
     }
-    button {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-    h1 {
+    
+    .title {
+      font-size: 1.875rem;
+      font-weight: 800;
       text-align: center;
-      color: #2c3e50;
+      color: #1f2937;
+      margin-bottom: 2rem;
     }
-    #output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #ecf0f1;
-      border-radius: 8px;
-      white-space: pre-line;
+    
+    .dimension-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.5rem;
+      background: #dbeafe;
+    }
+    
+    @media (min-width: 640px) {
+      .dimension-container {
+        flex-direction: row;
+        gap: 1rem;
+      }
+    }
+    
+    .dimension-label {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: #374151;
+      width: 100%;
+    }
+    
+    @media (min-width: 640px) {
+      .dimension-label {
+        width: 50%;
+      }
+    }
+    
+    .dimension-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #60a5fa;
+      border-radius: 0.5rem;
+      text-align: center;
+      font-family: monospace;
+      font-size: 1.25rem;
+      transition: border-color 0.15s ease;
+    }
+    
+    @media (min-width: 640px) {
+      .dimension-input {
+        width: 50%;
+      }
+    }
+    
+    .dimension-input:focus {
+      border-color: #2563eb;
+      outline: none;
+    }
+    
+    .matrix-container {
+      margin-top: 2rem;
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .input-grid {
+      display: grid;
+      gap: 0.5rem;
+      max-width: 28rem;
+      margin: 0 auto;
+    }
+    
+    .matrix-input, .vector-input {
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      text-align: center;
+      font-size: 1rem;
+      transition: all 0.15s ease;
+    }
+    
+    .matrix-input:focus, .vector-input:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+    
+    .matrix-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .solve-button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 2rem;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      font-size: 1.125rem;
+      border: none;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .solve-button:hover {
+      background: #1d4ed8;
+    }
+    
+    .solve-button:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+    }
+    
+    .solve-button:active {
+      background: #1e40af;
+    }
+    
+    .output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+    }
+    
+    .error {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+    }
+    
+    .spacer {
+      height: 1.5rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Linear Equation Solver</h1>
+    <h1 class="title">System of Linear Equations Solver</h1>
 
-    <label for="n">Number of equations (n):</label>
-    <input type="number" id="n" value="3" min="1" />
+    <!-- Dimension Input -->
+    <div class="dimension-container">
+      <label for="n" class="dimension-label">Matrix Size (N):</label>
+      <input type="number" id="n" value="3" min="1" max="10"
+        oninput="generateMatrixInputs(this.value)"
+        class="dimension-input"
+      />
+    </div>
 
-    <label for="matrixA">Enter Matrix A (one row per line, space-separated):</label>
-    <textarea id="matrixA" rows="4">2 1 1
-3 2 3
-1 4 9</textarea>
+    <!-- Dynamic Matrix and Vector Input Container -->
+    <div id="matrix-container" class="matrix-container">
+      <!-- Matrix inputs will be dynamically generated here -->
+    </div>
 
-    <label for="vectorB">Enter Vector B (space-separated):</label>
-    <input type="text" id="vectorB" value="10 18 16" />
+    <!-- Solve Button -->
+    <button onclick="solveSystem()" class="solve-button">
+      Solve System Matrix
+    </button>
 
-    <button onclick="solveSystem()">Solve</button>
-
-    <div id="output">Loading...</div>
+    <!-- Output Area -->
+    <div id="output" class="output">
+      Loading...
+    </div>
   </div>
 
   <script>
+    // --- PYODIDE INITIALIZATION ---
     let pyodideReady = (async () => {
       const pyodide = await loadPyodide();
       await pyodide.loadPackage(["numpy", "sympy"]);
       return pyodide;
     })();
 
+    // --- DYNAMIC INPUT GENERATION ---
+
+    const DEFAULT_A = [[2, 1, 1], [3, 2, 3], [1, 4, 9]];
+    const DEFAULT_B = [10, 18, 16];
+
+    /**
+     * Generates the N x N input grid for Matrix A and N x 1 for Vector B.
+     * @param {string} n - The size of the matrix (N).
+     */
+    function generateMatrixInputs(n) {
+        const N = parseInt(n) || 1;
+        const container = document.getElementById('matrix-container');
+        container.innerHTML = '';
+
+        if (N < 1 || N > 10) {
+            container.innerHTML = '<p style="color: #ef4444; font-weight: 600; text-align: center;">Please enter a size between 1 and 10.</p>';
+            return;
+        }
+
+        let html = '<h2 class="section-title">Enter Coefficients (A) and Constants (B)</h2>';
+        
+        // Main container for A and B - stacked vertically
+        html += '<div style="display: flex; flex-direction: column; gap: 1.5rem;">'; 
+
+        // ------------------ Matrix A Container ------------------
+        html += '<div class="matrix-section">';
+        html += '<label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Matrix A (' + N + 'x' + N + ')</label>';
+        
+        // Grid setup for Matrix A
+        html += `<div class="input-grid" style="grid-template-columns: repeat(${N}, minmax(0, 1fr));" id="matrixA-grid">`;
+        
+        // Generate Matrix A inputs
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                let defaultValue = '';
+                if (N === 3 && i < DEFAULT_A.length && j < DEFAULT_A[i].length) {
+                    defaultValue = DEFAULT_A[i][j];
+                }
+                html += `<input type="number" id="A_${i}_${j}" value="${defaultValue}" 
+                        placeholder="A[${i+1},${j+1}]" title="A[${i+1},${j+1}]" 
+                        class="matrix-input" />`;
+            }
+        }
+        html += '</div></div>';
+
+        // ------------------ Vector B Container ------------------
+        html += '<div class="matrix-section">';
+        html += '<label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Vector B (' + N + 'x1)</label>';
+        
+        // Grid setup for Vector B
+        html += `<div class="input-grid" style="grid-template-columns: repeat(${N}, minmax(0, 1fr));" id="vectorB-grid">`;
+
+        // Generate Vector B inputs
+        for (let i = 0; i < N; i++) {
+            let defaultValue = '';
+            if (N === 3 && i < DEFAULT_B.length) {
+                defaultValue = DEFAULT_B[i];
+            }
+            html += `<input type="number" id="B_${i}" value="${defaultValue}" 
+                    placeholder="B[${i+1}]" title="B[${i+1}]" 
+                    class="vector-input" />`;
+        }
+        html += '</div></div>';
+        
+        html += '</div>';
+        
+        container.innerHTML = html;
+    }
+
+    // --- SOLVER LOGIC ---
+
+    /**
+     * Collects data from the dynamic inputs, formats it, and calls Pyodide to solve the system.
+     */
     async function solveSystem() {
-      const pyodide = await pyodideReady;
-      const n = parseInt(document.getElementById("n").value);
-      const matrixA = document.getElementById("matrixA").value;
-      const vectorB = document.getElementById("vectorB").value;
+        const pyodide = await pyodideReady;
+        const N = parseInt(document.getElementById("n").value);
 
-      try {
-        // Fetch and run the Python script for solving the system
-        const script = await (await fetch("web_linear_solver.py")).text();
-        pyodide.runPython(script);
+        let matrixA_values = [];
+        let vectorB_values = [];
+        let valid = true;
 
-        pyodide.runPython(`
+        // Collect Matrix A values
+        for (let i = 0; i < N; i++) {
+            let row = [];
+            for (let j = 0; j < N; j++) {
+                const input = document.getElementById(`A_${i}_${j}`);
+                const val = input ? input.value.trim() : '';
+                if (val === '' || isNaN(parseFloat(val))) {
+                    valid = false;
+                    if(input) input.classList.add('error');
+                } else {
+                     if(input) input.classList.remove('error');
+                     row.push(val);
+                }
+            }
+            if (valid) matrixA_values.push(row.join(' '));
+        }
+
+        // Collect Vector B values
+        for (let i = 0; i < N; i++) {
+            const input = document.getElementById(`B_${i}`);
+            const val = input ? input.value.trim() : '';
+            if (val === '' || isNaN(parseFloat(val))) {
+                valid = false;
+                if(input) input.classList.add('error');
+            } else {
+                if(input) input.classList.remove('error');
+                vectorB_values.push(val);
+            }
+        }
+
+        const outputElement = document.getElementById("output");
+        
+        if (!valid) {
+            outputElement.innerText = "❌ Error: Please ensure all matrix and vector fields are filled with valid numbers.";
+            return;
+        }
+
+        outputElement.textContent = "Solving System Matrix... please wait.";
+
+        // Format data for Python (Pyodide)
+        const matrixA_str = matrixA_values.join('\n');
+        const vectorB_str = vectorB_values.join(' ');
+
+        try {
+            // Run the self-contained Python script
+            pyodide.runPython(`
 import sympy as sp
 
-# Parsing input data
-raw_matrix = """${matrixA}"""
-raw_vector = """${vectorB}"""
+# Parsing input data from JavaScript strings
+raw_matrix = """${matrixA_str}"""
+raw_vector = """${vectorB_str}"""
 
-# Converting input into symbolic matrix and vector
-A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n')]
-B = [sp.sympify(val) for val in raw_vector.strip().split()]
+# Convert input into symbolic matrix and vector
+try:
+    A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n') if row.strip()]
+    B = [sp.sympify(val) for val in raw_vector.strip().split()]
+except Exception as e:
+    raise ValueError(f"Could not parse matrix values. Details: {e}")
 
-# Checking matrix dimensions and validity
-if len(A) != ${n} or any(len(row) != ${n} for row in A) or len(B) != ${n}:
-    raise ValueError("Matrix dimensions do not match the number of equations.")
+# Checking matrix dimensions
+n = ${N}
+if len(A) != n or any(len(row) != n for row in A) or len(B) != n:
+    raise ValueError("Matrix dimensions do not match the expected size (N x N and N x 1).")
 
 # Solving the system using Gauss-Jordan Elimination
 def gauss_jordan_elimination(A, B):
-    A_aug = [row + [b] for row, b in zip(A, B)]  # Augmented matrix
     n = len(A)
+    # Augmented matrix [A | B]
+    A_aug = [row + [b] for row, b in zip(A, B)]
 
-    # Forward elimination
     for i in range(n):
-        # Make the diagonal element 1
+        # Partial Pivoting: Find the row with the largest element in the current column i
         max_row = max(range(i, n), key=lambda r: abs(A_aug[r][i]))
+        # Swap rows
         A_aug[i], A_aug[max_row] = A_aug[max_row], A_aug[i]
+
         pivot = A_aug[i][i]
+        
+        if pivot == 0:
+            # Check for infinite solutions or no solution
+            if A_aug[i][n] != 0:
+                raise Exception("No unique solution exists (system is inconsistent).")
+            continue
+            
+        # Normalize the pivot row (make the diagonal element 1)
         A_aug[i] = [x / pivot for x in A_aug[i]]
 
-        # Eliminate the column entries
+        # Eliminate the column entries (make all other elements in column i zero)
         for j in range(n):
             if j != i:
                 factor = A_aug[j][i]
                 A_aug[j] = [A_aug[j][k] - factor * A_aug[i][k] for k in range(n + 1)]
 
     # Extracting the solutions
-    return [row[-1] for row in A_aug]
+    result = [row[-1] for row in A_aug]
+    
+    # Check for consistency/uniqueness
+    for i in range(n):
+        if A_aug[i][i].is_zero and not A_aug[i][-1].is_zero:
+             raise Exception("No solution exists (inconsistent system).")
+
+    return result
 
 # Solving the system and storing the result
 result = gauss_jordan_elimination(A, B)
-        `);
+            `);
 
-        const result = pyodide.globals.get("result").toJs();
+            const result = pyodide.globals.get("result").toJs();
 
-        // Displaying the results
-        document.getElementById("output").innerText =
-          "✅ Solution using Gauss-Jordan Elimination:\n" +
-          result.map((val, i) => `x${i + 1} = ${parseFloat(val).toFixed(6)}`).join("\n");
+            // Displaying the results
+            const solutionText = result.map((val, i) => {
+                let displayVal;
+                try {
+                    displayVal = val.p_div ? val.p_div(1, 1) : val.toString();
+                } catch (e) {
+                    displayVal = parseFloat(val).toFixed(6);
+                }
+                return `x${i + 1} = ${displayVal}`;
+            }).join("\n");
 
-      } catch (err) {
-        document.getElementById("output").innerText = "❌ Error: " + err;
-      }
+            document.getElementById("output").innerText =
+              "✅ Solution found:\n\n" + solutionText;
+
+        } catch (err) {
+            outputElement.innerText = "❌ Calculation Error:\n" + (err.message || err.toString());
+        }
     }
 
+    // Initialize the matrix inputs when the script loads
     pyodideReady
-      .then(() => document.getElementById("output").textContent = "Loaded. Ready to solve!")
-      .catch(err => document.getElementById("output").textContent = "❌ Failed to load");
+      .then(() => {
+        generateMatrixInputs(document.getElementById("n").value);
+        document.getElementById("output").textContent = "Loaded. Ready to input and solve!";
+      })
+      .catch(err => document.getElementById("output").textContent = "❌ Failed to load solver engine: " + err);
   </script>
 </body>
 </html>

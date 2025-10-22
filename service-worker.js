@@ -1,34 +1,22 @@
-const CACHE_NAME = 'pyodide-full-v0251-cache-1'; 
-const PYODIDE_VERSION = 'v0.25.1';
+const CACHE_NAME = 'app-only-cache-v2'; // Incrementing cache version again to force re-install
+const PYODIDE_VERSION = 'v0.25.1'; // Keeping this variable, but not using it for caching
 const PYODIDE_BASE_URL = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSION}/full/`;
 
-// List of ALL essential Pyodide files for version v0.25.1
-// NOTE: This list is based on common Pyodide requests. If your app fails, 
-// check the Network tab on first load to see if any .whl files are also requested.
+// List of only the local application files.
+// We are REMOVING the root path '/' which can sometimes cause fetch failures.
 const CACHE_URLS = [
-  // Core application files
-  '/',                      // The main domain root
+  // --- Local Application Files ---
   '/index.html',            // Root index.html
   '/service-worker-setup.js',
   '/load-pyodide-and-app.js',
-  
-  // --- CORE PYODIDE FILES (from CDN) ---
-  `${PYODIDE_BASE_URL}pyodide.js`,
-  // The WebAssembly module and its large data file (Standard Library)
-  `${PYODIDE_BASE_URL}pyodide.asm.wasm`,
-  `${PYODIDE_BASE_URL}pyodide.asm.data`,
-  `${PYODIDE_BASE_URL}pyodide.asm.js`,
-  // Package metadata index
-  `${PYODIDE_BASE_URL}packages.json`,
-  
-  // Add other local assets (CSS, Images) if desired for full offline support
 ];
 
-// 1. Installation: Open cache and store all files
+// 1. Installation: Open cache and store only local files
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('Pre-caching FULL Pyodide files...');
+      console.log('Pre-caching ONLY local application files to bypass path errors.');
+      // This will now only fail if one of the local files is missing (which they shouldn't be).
       return cache.addAll(CACHE_URLS);
     })
   );
@@ -42,7 +30,7 @@ self.addEventListener('fetch', event => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      // Otherwise, fetch from the network
+      // Otherwise, fetch from the network (Pyodide CDN files will be fetched here)
       return fetch(event.request);
     })
   );

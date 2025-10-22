@@ -3,7 +3,6 @@ let pyodideInstance = null;
 
 async function initializePyodideAndApp() {
     // Ensure the browser has finished loading before attempting to load Pyodide
-    // The Pyodide files will be pulled from the Service Worker cache if available.
     if (typeof loadPyodide === 'undefined') {
         console.error("Pyodide loader (loadPyodide) not found. Check your HTML script tags.");
         return;
@@ -17,14 +16,20 @@ async function initializePyodideAndApp() {
 
         pyodideInstance = pyodide;
         console.log("Pyodide is fully initialized and ready.");
+        
+        // Load required packages after Pyodide is ready
+        await pyodide.loadPackage(["numpy", "sympy"]);
 
-        // --- PLACE YOUR MAIN APPLICATION LOGIC HERE ---
-        // Example: Run a setup function or display your UI
-        // pyodideInstance.runPython('import numpy');
-        // document.getElementById('py-status').textContent = 'Python Ready';
+        // Call the main application initialization function from index.html (if it exists)
+        if (typeof initializeAppLogic === 'function') {
+             initializeAppLogic(pyodideInstance);
+        } else {
+             document.getElementById("output").textContent = "Pyodide Loaded. Ready to input and solve!";
+        }
 
     } catch (error) {
         console.error("Failed to load Pyodide:", error);
+        document.getElementById("output").textContent = `❌ Failed to load Pyodide: ${error.message}`;
     }
 }
 
