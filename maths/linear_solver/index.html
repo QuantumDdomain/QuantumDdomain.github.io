@@ -10,10 +10,12 @@
   <script src="../../load-pyodide-and-app.js"></script>
   <script src="../../calculator.js"></script>
   <style>
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
     }
     
     .container {
@@ -23,8 +25,9 @@
       padding: 1.5rem;
       background: white;
       border-radius: 0.75rem;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       margin-top: 2.5rem;
+      border: 1px solid #e5e7eb;
     }
     
     .title {
@@ -43,7 +46,7 @@
       padding: 1rem;
       border: 1px solid #bfdbfe;
       border-radius: 0.5rem;
-      background: #dbeafe;
+      background: #eff6ff; /* Light blue background */
     }
     
     @media (min-width: 640px) {
@@ -58,11 +61,13 @@
       font-weight: 500;
       color: #374151;
       width: 100%;
+      padding-bottom: 0.5rem;
     }
     
     @media (min-width: 640px) {
       .dimension-label {
         width: 50%;
+        padding-bottom: 0;
       }
     }
     
@@ -74,7 +79,7 @@
       text-align: center;
       font-family: monospace;
       font-size: 1.25rem;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     
     @media (min-width: 640px) {
@@ -85,6 +90,7 @@
     
     .dimension-input:focus {
       border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
       outline: none;
     }
     
@@ -108,19 +114,25 @@
       margin: 0 auto;
     }
     
+    /* IMPORTANT: Inputs are now type="text" to accept fractions like 1/2 */
     .matrix-input, .vector-input {
       padding: 0.5rem;
       border: 1px solid #d1d5db;
       border-radius: 0.375rem;
       text-align: center;
       font-size: 1rem;
+      font-family: 'Inter', sans-serif;
       transition: all 0.15s ease;
+      background-color: #ffffff;
+      /* Style hint for fractions */
+      font-style: italic; 
     }
     
     .matrix-input:focus, .vector-input:focus {
       border-color: #3b82f6;
       outline: none;
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+      font-style: normal; /* Remove italic when focused */
     }
     
     .matrix-section {
@@ -131,39 +143,40 @@
       width: 100%;
       padding: 0.75rem;
       margin-top: 2rem;
-      background: #2563eb;
+      background: #10b981; /* Green color for action */
       color: white;
       font-weight: bold;
       font-size: 1.125rem;
       border: none;
       border-radius: 0.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
     }
     
     .solve-button:hover {
-      background: #1d4ed8;
+      background: #059669;
     }
     
     .solve-button:focus {
       outline: none;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.5);
     }
     
     .solve-button:active {
-      background: #1e40af;
+      background: #047857;
     }
     
     .output {
       margin-top: 1.5rem;
       padding: 1rem;
-      background: #f3f4f6;
-      border: 1px solid #d1d5db;
+      background: #f0fdf4; /* Light success background */
+      border: 1px solid #dcfce7;
       border-radius: 0.5rem;
       font-family: monospace;
       font-size: 0.875rem;
       white-space: pre-wrap;
+      min-height: 50px;
     }
     
     .error {
@@ -171,9 +184,6 @@
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
     }
     
-    .spacer {
-      height: 1.5rem;
-    }
   </style>
 </head>
 <body>
@@ -207,16 +217,25 @@
 
   <script>
     // --- PYODIDE INITIALIZATION ---
+    // Standard Pyodide setup
     let pyodideReady = (async () => {
-      const pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "sympy"]);
-      return pyodide;
+      const outputElement = document.getElementById("output");
+      try {
+          outputElement.textContent = "Loading ...";
+          const pyodide = await loadPyodide();
+          outputElement.textContent = "Loading ...";
+          await pyodide.loadPackage(["numpy", "sympy"]);
+          return pyodide;
+      } catch (e) {
+          outputElement.textContent = "❌ Failed to load Pyodide: " + e;
+          throw e;
+      }
     })();
 
     // --- DYNAMIC INPUT GENERATION ---
 
-    const DEFAULT_A = [[2, 1, 1], [3, 2, 3], [1, 4, 9]];
-    const DEFAULT_B = [10, 18, 16];
+    const DEFAULT_A = [['2', '1/2', '1'], ['3', '2', '3'], ['1', '4', '9']]; // Updated 1 to 1/2 for demonstration
+    const DEFAULT_B = ['10', '18', '16'];
 
     /**
      * Generates the N x N input grid for Matrix A and N x 1 for Vector B.
@@ -244,14 +263,14 @@
         // Grid setup for Matrix A
         html += `<div class="input-grid" style="grid-template-columns: repeat(${N}, minmax(0, 1fr));" id="matrixA-grid">`;
         
-        // Generate Matrix A inputs
+        // Generate Matrix A inputs (type="text" now)
         for (let i = 0; i < N; i++) {
             for (let j = 0; j < N; j++) {
                 let defaultValue = '';
                 if (N === 3 && i < DEFAULT_A.length && j < DEFAULT_A[i].length) {
                     defaultValue = DEFAULT_A[i][j];
                 }
-                html += `<input type="number" id="A_${i}_${j}" value="${defaultValue}" 
+                html += `<input type="text" id="A_${i}_${j}" value="${defaultValue}" 
                         placeholder="A[${i+1},${j+1}]" title="A[${i+1},${j+1}]" 
                         class="matrix-input" />`;
             }
@@ -265,13 +284,13 @@
         // Grid setup for Vector B
         html += `<div class="input-grid" style="grid-template-columns: repeat(${N}, minmax(0, 1fr));" id="vectorB-grid">`;
 
-        // Generate Vector B inputs
+        // Generate Vector B inputs (type="text" now)
         for (let i = 0; i < N; i++) {
             let defaultValue = '';
             if (N === 3 && i < DEFAULT_B.length) {
                 defaultValue = DEFAULT_B[i];
             }
-            html += `<input type="number" id="B_${i}" value="${defaultValue}" 
+            html += `<input type="text" id="B_${i}" value="${defaultValue}" 
                     placeholder="B[${i+1}]" title="B[${i+1}]" 
                     class="vector-input" />`;
         }
@@ -293,7 +312,7 @@
 
         let matrixA_values = [];
         let vectorB_values = [];
-        let valid = true;
+        let valid = true; // Now only checks for non-empty input
 
         // Collect Matrix A values
         for (let i = 0; i < N; i++) {
@@ -301,7 +320,7 @@
             for (let j = 0; j < N; j++) {
                 const input = document.getElementById(`A_${i}_${j}`);
                 const val = input ? input.value.trim() : '';
-                if (val === '' || isNaN(parseFloat(val))) {
+                if (val === '') { // Check only for empty string, let SymPy handle validity
                     valid = false;
                     if(input) input.classList.add('error');
                 } else {
@@ -316,7 +335,7 @@
         for (let i = 0; i < N; i++) {
             const input = document.getElementById(`B_${i}`);
             const val = input ? input.value.trim() : '';
-            if (val === '' || isNaN(parseFloat(val))) {
+            if (val === '') { // Check only for empty string
                 valid = false;
                 if(input) input.classList.add('error');
             } else {
@@ -328,7 +347,7 @@
         const outputElement = document.getElementById("output");
         
         if (!valid) {
-            outputElement.innerText = "❌ Error: Please ensure all matrix and vector fields are filled with valid numbers.";
+            outputElement.innerText = "❌ Error: Please ensure all matrix and vector fields are filled with values.";
             return;
         }
 
@@ -340,8 +359,10 @@
 
         try {
             // Run the self-contained Python script
+            // The key change is that `sp.sympify(val)` is now able to parse fractions and simple expressions.
             pyodide.runPython(`
 import sympy as sp
+from sympy.parsing.mathematica import parse_mathematica
 
 # Parsing input data from JavaScript strings
 raw_matrix = """${matrixA_str}"""
@@ -349,10 +370,11 @@ raw_vector = """${vectorB_str}"""
 
 # Convert input into symbolic matrix and vector
 try:
+    # Use sympify on each string value, allowing fractions (e.g., 1/2) and simple expressions (e.g., 3*4)
     A = [[sp.sympify(val) for val in row.split()] for row in raw_matrix.strip().split('\\n') if row.strip()]
     B = [sp.sympify(val) for val in raw_vector.strip().split()]
 except Exception as e:
-    raise ValueError(f"Could not parse matrix values. Details: {e}")
+    raise ValueError(f"Could not parse matrix values. Please check for valid mathematical expressions. Details: {e}")
 
 # Checking matrix dimensions
 n = ${N}
@@ -367,15 +389,17 @@ def gauss_jordan_elimination(A, B):
 
     for i in range(n):
         # Partial Pivoting: Find the row with the largest element in the current column i
-        max_row = max(range(i, n), key=lambda r: abs(A_aug[r][i]))
+        # Use abs(A_aug[r][i].evalf()) for reliable comparison of symbolic/float values
+        max_row = max(range(i, n), key=lambda r: abs(A_aug[r][i].evalf())) 
         # Swap rows
         A_aug[i], A_aug[max_row] = A_aug[max_row], A_aug[i]
 
         pivot = A_aug[i][i]
         
-        if pivot == 0:
+        # Check if pivot is numerically zero (using evalf for safety with complex symbols)
+        if pivot.evalf() == 0:
             # Check for infinite solutions or no solution
-            if A_aug[i][n] != 0:
+            if A_aug[i][n].evalf() != 0:
                 raise Exception("No unique solution exists (system is inconsistent).")
             continue
             
@@ -389,11 +413,12 @@ def gauss_jordan_elimination(A, B):
                 A_aug[j] = [A_aug[j][k] - factor * A_aug[i][k] for k in range(n + 1)]
 
     # Extracting the solutions
-    result = [row[-1] for row in A_aug]
+    result = [row[-1].simplify() for row in A_aug] # Simplify the result
     
     # Check for consistency/uniqueness
     for i in range(n):
-        if A_aug[i][i].is_zero and not A_aug[i][-1].is_zero:
+        # Check if the diagonal is zero and the constant term is non-zero
+        if A_aug[i][i].evalf() == 0 and A_aug[i][-1].evalf() != 0:
              raise Exception("No solution exists (inconsistent system).")
 
     return result
@@ -406,13 +431,17 @@ result = gauss_jordan_elimination(A, B)
 
             // Displaying the results
             const solutionText = result.map((val, i) => {
-                let displayVal;
-                try {
-                    displayVal = val.p_div ? val.p_div(1, 1) : val.toString();
-                } catch (e) {
-                    displayVal = parseFloat(val).toFixed(6);
+                // SymPy values (val) are often Fractions or Floats.
+                let displayVal = val.toString();
+                // Optionally display the decimal approximation for clarity
+                let decimalVal = val.is_Number ? val.evalf(6).toString() : ''; 
+                
+                let finalDisplay = `x${i + 1} = ${displayVal}`;
+                if (decimalVal && displayVal !== decimalVal) {
+                    finalDisplay += ` ≈ ${decimalVal}`;
                 }
-                return `x${i + 1} = ${displayVal}`;
+
+                return finalDisplay;
             }).join("\n");
 
             document.getElementById("output").innerText =
