@@ -1,65 +1,46 @@
-# 📊 Numerical Methods Web App
+# Interactive Numerical Methods Visualizer
 
-This is a web-based interactive tool designed to demonstrate and visualize various **numerical methods** used in computational physics and applied mathematics. The tool provides intuitive interfaces, real-time plotting, and symbolic representations to enhance understanding of algorithms.
+[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-brightgreen)](https://quantumddomain.github.io/)
+[![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/QuantumDdomain/QuantumDdomain.github.io)
 
----
+An open-source, web-based platform for interactive visualization of mathematical algorithms and computational methods. Designed to bridge the gap between theoretical concepts and practical understanding through dynamic, real-time visualizations.
 
-## 🧮 Included Numerical Methods
+## 🚀 Live Demo
 
-The app currently supports the following categories of numerical techniques:
+**Experience the tool live:** [https://quantumddomain.github.io/](https://quantumddomain.github.io/)
 
-### ✅ Root Finding
-- **Bisection Method**
-- **Newton-Raphson Method**
-- **Fixed Point Iteration**
-- **Secant Method**
+## ✨ Features
 
-### ✅ Numerical Differentiation
-- **Forward/Backward/Centered Difference**
-- **Richardson's Extrapolation**
+### Interactive Learning Environment
+- **Real-time Visualization**: Watch algorithms unfold step by step with animated demonstrations
+- **Parameter Exploration**: Adjust inputs and immediately see how they affect results
+- **Comparative Analysis**: Compare different approaches side by side
+- **Error Analysis**: Visualize accuracy and convergence behavior
 
-### ✅ Numerical Integration
-- **Trapezoidal Rule**
-- **Simpson’s 1/3 Rule**
-- **Monte Carlo Integration**
+### Educational Focus
+- **Step-by-Step Execution**: Understand each stage of complex algorithms
+- **Mathematical Foundation**: Clear explanations with proper theoretical background
+- **Multiple Representations**: View problems from algebraic, geometric, and numerical perspectives
+- **Instant Feedback**: Experiment and see results without complex setup
 
-### ✅ Interpolation
-- **Lagrange Interpolation**
-- **Newton’s Divided Difference**
+### Technical Capabilities
+- **Client-Side Processing**: All computations happen in your browser - no server required
+- **Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
+- **Modern Web Standards**: Built with latest web technologies for optimal performance
+- **Extensible Architecture**: Easy to add new methods and visualizations
 
-### ✅ Ordinary Differential Equations (ODEs)
-- **Euler Method**
-- **Runge-Kutta 2nd and 4th Order Methods**
-- **Multivariable Runge-Kutta Solver**
+## 🛠️ Technology Stack
 
-### ✅ Curve Fitting
-- **Linear Fit**
-- **Polynomial Fit**
-- **Power, Exponential, and Custom Models**
+- **Frontend**: Pure HTML5, CSS3, and Vanilla JavaScript
+- **Visualization**: Canvas API and SVG graphics
+- **Styling**: Modern CSS with Flexbox/Grid layouts
+- **Deployment**: GitHub Pages
+- **Compatibility**: Cross-browser support
 
----
+## 🚀 Quick Start
 
-## 🛠️ Technologies Used
-
-- **Python 🐍**
-- **NumPy** — for efficient numerical computations
-- **Matplotlib** — for real-time plotting
-- **SymPy** — for symbolic math and LaTeX-rendered outputs
-- **Pyodide + JavaScript** — for running Python in the browser
-
----
-
-## 🌐 Deployment
-
-The app is designed to run directly in the browser using **Pyodide**, and is deployed via **GitHub Pages**.
-
----
-
-## 📦 Installation (for development)
-
-Clone the repository and open the HTML files in a browser:
-
-```bash
-git clone https://github.com/QuantumDdomain/Numerical-App.git
-cd Numerical-App
-# Open index.html or specific subtools in browser
+### Local Development
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/QuantumDdomain/QuantumDdomain.github.io.git
+   cd QuantumDdomain.github.io
