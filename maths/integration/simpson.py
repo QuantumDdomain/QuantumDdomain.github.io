@@ -1,18 +1,24 @@
 import sympy as sp
 
-def simpson(X_0, X_N, fn_str, h=0.01):
+def simpson(X_0, X_N, fn_str, h=0.01, tolerance=1e-6):
+    """
+    Approximates the definite integral of a function using Simpson's 1/3 Rule.
+    """
     x = sp.symbols('x')
     func = sp.sympify(fn_str)
     
     X_0 = sp.sympify(X_0)
     X_N = sp.sympify(X_N)
     h = float(h)
-
-    # Check a few values in the interval for domain validity
+    
+    # -----------------
+    # Helper for domain check
+    # -----------------
     def is_safe(expr, a, b):
         test_points = [a, b, (a + b) / 2]
         for val in test_points:
             try:
+                # Use float() on SymPy number before casting to check for non-real
                 eval_val = expr.subs(x, val).evalf()
                 if eval_val.has(sp.zoo, sp.oo, sp.nan) or sp.im(eval_val) != 0:
                     return False
@@ -22,11 +28,15 @@ def simpson(X_0, X_N, fn_str, h=0.01):
 
     if not is_safe(func, X_0, X_N):
         return "❌ Error: Function has undefined or complex values in the interval."
-
+        
+    # -----------------
+    # Setup for Simpson's Rule
+    # -----------------
     # Ensure even number of intervals
     n = int((X_N - X_0) / h)
     if n % 2 != 0:
         n += 1
+    # Recalculate h based on the exact number of even intervals
     h = (X_N - X_0) / n
 
     try:
@@ -34,6 +44,9 @@ def simpson(X_0, X_N, fn_str, h=0.01):
     except Exception as e:
         return f"❌ Error evaluating function at boundaries: {e}"
 
+    # -----------------
+    # Simpson's Rule Calculation
+    # -----------------
     xi = X_0 + h
     for i in range(1, n):
         try:
@@ -47,4 +60,10 @@ def simpson(X_0, X_N, fn_str, h=0.01):
         xi += h
 
     integral = (h / 3) * sum_result
-    return f"{integral.evalf()}"
+    final_result = integral.evalf()
+
+    if abs(final_result) < tolerance:
+        return "0"
+    formatted_result = f"{final_result:.3e}"
+
+    return f"{formatted_result}"
